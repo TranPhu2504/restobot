@@ -11,14 +11,13 @@ app = FastAPI(
     description="RestoBot - Intelligent Virtual Assistant for Restaurants API"
 )
 
-# Set up CORS - Allow all origins for development and production flexibility
+# Set up CORS
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # Allow all origins
+    allow_origins=["*"],  # In production, replace with specific origins
     allow_credentials=True,
-    allow_methods=["*"],  # Allow all HTTP methods
-    allow_headers=["*"],  # Allow all headers
-    expose_headers=["*"],  # Expose all response headers
+    allow_methods=["*"],
+    allow_headers=["*"],
 )
 
 
