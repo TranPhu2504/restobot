@@ -92,18 +92,7 @@ nlu:
     - bạn recommend cái gì
     - món hay nhất
     - top dishes
-    - món đặc biệt
-    - món đặc biệt là gì
-    - gợi ý món ăn
-    - món gì ngon
-    - bạn suggest món gì
-    - recommend món gì
     - món signature
-    - món đặc trưng
-    - món bán chạy
-    - món bán chạy nhất
-    - bestseller
-    - popular dishes
 
 - intent: ask_dish_price
   examples: |
@@ -120,7 +109,6 @@ nlu:
     - chi tiết về [phở bò](dish_name)
     - mô tả [salad caesar](dish_name)
     - [phở bò](dish_name) có gì
-    - món này làm từ gì
     - ingredients của [salad caesar](dish_name)
     - thành phần của món này
     - món đó như thế nào
@@ -339,7 +327,6 @@ nlu:
     - món đó giá bao nhiêu
     - cái này có gì trong đó
     - nó ngon không
-    - món này làm từ gì
     - thứ đó có cay không
     - dish đó như thế nào
     - cái kia có đắt không
@@ -399,18 +386,15 @@ nlu:
 - intent: ask_popular_dishes
   examples: |
     - món nào được ưa chuộng
-    - món bán chạy
     - món được gọi nhiều
     - best seller
     - món hot
-    - popular dishes
     - món nào nổi tiếng
 
 - intent: ask_special_dishes
   examples: |
     - món đặc biệt
     - signature dish
-    - món đặc trưng
     - món chủ lực
     - specialty
     - specialty dishes
@@ -418,9 +402,6 @@ nlu:
 
 - intent: recommend_dishes
   examples: |
-    - gợi ý món ăn
-    - món gì ngon
-    - bạn suggest món gì
     - tôi nên ăn gì
     - món nào đáng thử
     - recommend dishes

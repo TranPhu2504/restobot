@@ -8,14 +8,10 @@ pipeline:
   - name: RegexFeaturizer
   - name: CountVectorsFeaturizer
   - name: DIETClassifier
-    epochs: 50
   - name: EntitySynonymMapper
   - name: FallbackClassifier
-    threshold: 0.3
 
 policies:
+  - name: MemoizationPolicy
   - name: RulePolicy
-    fallback_action_name: "utter_default"
   - name: TEDPolicy
-    epochs: 50
-    max_history: 5
