@@ -19,7 +19,6 @@ import {
   Alert,
   AlertTitle,
   Fab,
-  Badge,
 } from '@mui/material';
 import {
   Send as SendIcon,
@@ -65,13 +64,6 @@ interface ConnectionStatus {
   fastApi: boolean;
   message: string;
 }
-
-const quickButtons = [
-  { icon: <TableIcon />, text: 'Đặt bàn 4 người', action: 'Đặt bàn 4 người ngày 07/01/2025 lúc 19:00' },
-  { icon: <MenuIcon />, text: 'Xem thực đơn', action: 'Cho tôi xem thực đơn' },
-  { icon: <CartIcon />, text: 'Gọi món', action: 'Tôi muốn gọi món ăn' },
-  { icon: <InfoIcon />, text: 'Thông tin nhà hàng', action: 'Cho tôi biết thông tin về nhà hàng' },
-];
 
 // Gợi ý tin nhắn dựa trên NLU
 const messageSuggestions = [
@@ -234,7 +226,22 @@ Bạn có thể sử dụng các nút bên dưới hoặc nhập trực tiếp!`
     return null;
   };
 
-  const handleTableBooking = (tableId?: number) => {
+  const handleTableBooking = () => {
+    if (!user) {
+      const loginMessage: Message = {
+        id: Date.now().toString(),
+        text: '🔒 Bạn cần đăng nhập để đặt bàn!\n\nVui lòng đăng nhập trước khi tiếp tục.',
+        sender: 'bot',
+        timestamp: new Date(),
+      };
+      setMessages(prev => [...prev, loginMessage]);
+      return;
+    }
+
+    setBookingDialogOpen(true);
+  };
+
+  const handleTableBookingWithId = (tableId?: number) => {
     if (!user) {
       const loginMessage: Message = {
         id: Date.now().toString(),
@@ -925,7 +932,7 @@ Bạn có thể sử dụng các nút bên dưới hoặc nhập trực tiếp!`
             <Button onClick={() => setStatusViewOpen(false)}>Đóng</Button>
           </Box>
           <TableStatusView 
-            onBookTable={handleTableBooking}
+            onBookTable={handleTableBookingWithId}
             showBookingButton={true}
           />
         </Paper>
@@ -954,7 +961,7 @@ Bạn có thể sử dụng các nút bên dưới hoặc nhập trực tiếp!`
           setPaymentDialogOpen(false);
           setCurrentOrder(null);
         }}
-        orderId={currentOrder?.id}
+        order={currentOrder}
       />
     </Box>
   );
