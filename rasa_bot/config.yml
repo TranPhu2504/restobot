@@ -18,7 +18,11 @@ pipeline:
     threshold: 0.3
 
 policies:
-  - name: MemoizationPolicy
   - name: RulePolicy
+    priority: 1
+  - name: MemoizationPolicy
+    priority: 2
   - name: UnexpecTEDIntentPolicy
+    priority: 3
   - name: TEDPolicy
+    priority: 4
