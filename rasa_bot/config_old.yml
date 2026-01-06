@@ -1,6 +1,5 @@
-version: "3.1"
-
 recipe: default.v1
+
 language: vi
 
 pipeline:
@@ -8,14 +7,9 @@ pipeline:
   - name: RegexFeaturizer
   - name: CountVectorsFeaturizer
   - name: DIETClassifier
-    epochs: 50
   - name: EntitySynonymMapper
   - name: FallbackClassifier
-    threshold: 0.3
 
 policies:
   - name: RulePolicy
-    fallback_action_name: "utter_default"
   - name: TEDPolicy
-    epochs: 50
-    max_history: 5
