@@ -33,8 +33,8 @@ USER rasauser
 # Expose Rasa ports
 EXPOSE 5005 5055
 
-# Train model on container start if needed
-RUN if [ ! -d "models" ] || [ -z "$(ls -A models)" ]; then rasa train; fi
+# Create models directory
+RUN mkdir -p models
 
 # Default command (can be overridden)
 CMD ["rasa", "run", "--port", "5005", "--enable-api", "--cors", "*"]
