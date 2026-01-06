@@ -3,7 +3,7 @@ import { DashboardStats } from '../types';
 
 export class DashboardService {
   async getDashboardStats(): Promise<DashboardStats> {
-    return apiClient.get<DashboardStats>('/dashboard/stats');
+    return apiClient.get<DashboardStats>('/api/v1/dashboard/stats');
   }
 
   async getRevenueByPeriod(params: {
@@ -15,7 +15,7 @@ export class DashboardService {
     revenue: number;
     orders: number;
   }>> {
-    return apiClient.get('/dashboard/revenue', { params });
+    return apiClient.get('/api/v1/dashboard/revenue', { params });
   }
 
   async getPopularDishesStats(params?: {
@@ -27,7 +27,7 @@ export class DashboardService {
     order_count: number;
     revenue: number;
   }>> {
-    return apiClient.get('/dashboard/popular-dishes', { params });
+    return apiClient.get('/api/v1/dashboard/popular-dishes', { params });
   }
 
   async getTableUtilization(): Promise<Array<{
@@ -36,7 +36,7 @@ export class DashboardService {
     utilization_rate: number;
     total_reservations: number;
   }>> {
-    return apiClient.get('/dashboard/table-utilization');
+    return apiClient.get('/api/v1/dashboard/table-utilization');
   }
 
   async getCustomerStats(): Promise<{
@@ -45,7 +45,7 @@ export class DashboardService {
     returning_customers: number;
     avg_order_value: number;
   }> {
-    return apiClient.get('/dashboard/customer-stats');
+    return apiClient.get('/api/v1/dashboard/customer-stats');
   }
 
   async getOrderTrends(days: number = 30): Promise<Array<{
@@ -54,7 +54,7 @@ export class DashboardService {
     revenue: number;
     avg_order_value: number;
   }>> {
-    return apiClient.get(`/dashboard/order-trends?days=${days}`);
+    return apiClient.get(`/api/v1/dashboard/order-trends?days=${days}`);
   }
 }
 

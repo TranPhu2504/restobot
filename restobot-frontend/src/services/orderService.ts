@@ -18,23 +18,23 @@ export class OrderService {
     date_from?: string;
     date_to?: string;
   }): Promise<PaginatedResponse<Order>> {
-    return apiClient.get<PaginatedResponse<Order>>('/orders', { params });
+    return apiClient.get<PaginatedResponse<Order>>('/api/v1/orders/orders', { params });
   }
 
   async getOrder(id: number): Promise<Order> {
-    return apiClient.get<Order>(`/orders/${id}`);
+    return apiClient.get<Order>(`/api/v1/orders/orders/${id}`);
   }
 
   async createOrder(orderData: CreateOrderRequest): Promise<Order> {
-    return apiClient.post<Order>('/orders', orderData);
+    return apiClient.post<Order>('/api/v1/orders/orders', orderData);
   }
 
   async updateOrder(id: number, orderData: Partial<CreateOrderRequest>): Promise<Order> {
-    return apiClient.put<Order>(`/orders/${id}`, orderData);
+    return apiClient.put<Order>(`/api/v1/orders/orders/${id}`, orderData);
   }
 
   async updateOrderStatus(id: number, status: Order['status']): Promise<Order> {
-    return apiClient.patch<Order>(`/orders/${id}/status`, { status });
+    return apiClient.patch<Order>(`/api/v1/orders/orders/${id}/status`, { status });
   }
 
   async cancelOrder(id: number): Promise<Order> {
@@ -43,15 +43,15 @@ export class OrderService {
 
   // Order items management
   async addOrderItem(orderId: number, item: Omit<OrderItem, 'id' | 'dish' | 'subtotal'>): Promise<Order> {
-    return apiClient.post<Order>(`/orders/${orderId}/items`, item);
+    return apiClient.post<Order>(`/api/v1/orders/orders/${orderId}/items`, item);
   }
 
   async updateOrderItem(orderId: number, itemId: number, item: Partial<OrderItem>): Promise<Order> {
-    return apiClient.put<Order>(`/orders/${orderId}/items/${itemId}`, item);
+    return apiClient.put<Order>(`/api/v1/orders/orders/${orderId}/items/${itemId}`, item);
   }
 
   async removeOrderItem(orderId: number, itemId: number): Promise<Order> {
-    return apiClient.delete<Order>(`/orders/${orderId}/items/${itemId}`);
+    return apiClient.delete<Order>(`/api/v1/orders/orders/${orderId}/items/${itemId}`);
   }
 
   // Kitchen & Service operations
@@ -113,7 +113,7 @@ export class OrderService {
     orders_by_status: Record<Order['status'], number>;
     orders_by_type: Record<Order['order_type'], number>;
   }> {
-    return apiClient.get('/orders/stats', { params });
+    return apiClient.get('/api/v1/orders/stats', { params });
   }
 
   // Calculate order total

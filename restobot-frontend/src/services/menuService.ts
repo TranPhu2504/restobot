@@ -15,27 +15,27 @@ export class MenuService {
     search?: string;
     is_available?: boolean;
   }): Promise<PaginatedResponse<Dish>> {
-    return apiClient.get<PaginatedResponse<Dish>>('/menu/dishes', { params });
+    return apiClient.get<PaginatedResponse<Dish>>('/api/v1/menu/items', { params });
   }
 
   async getDish(id: number): Promise<Dish> {
-    return apiClient.get<Dish>(`/menu/dishes/${id}`);
+    return apiClient.get<Dish>(`/api/v1/menu/items/${id}`);
   }
 
   async createDish(dishData: CreateDishRequest): Promise<Dish> {
-    return apiClient.post<Dish>('/menu/dishes', dishData);
+    return apiClient.post<Dish>('/api/v1/menu/items', dishData);
   }
 
   async updateDish(id: number, dishData: Partial<CreateDishRequest>): Promise<Dish> {
-    return apiClient.put<Dish>(`/menu/dishes/${id}`, dishData);
+    return apiClient.put<Dish>(`/api/v1/menu/items/${id}`, dishData);
   }
 
   async deleteDish(id: number): Promise<void> {
-    return apiClient.delete(`/menu/dishes/${id}`);
+    return apiClient.delete(`/api/v1/menu/items/${id}`);
   }
 
   async toggleDishAvailability(id: number): Promise<Dish> {
-    return apiClient.patch<Dish>(`/menu/dishes/${id}/toggle-availability`);
+    return apiClient.patch<Dish>(`/api/v1/menu/items/${id}/toggle-availability`);
   }
 
   // Category management
@@ -44,23 +44,23 @@ export class MenuService {
     size?: number;
     is_active?: boolean;
   }): Promise<PaginatedResponse<MenuCategory>> {
-    return apiClient.get<PaginatedResponse<MenuCategory>>('/menu/categories', { params });
+    return apiClient.get<PaginatedResponse<MenuCategory>>('/api/v1/menu/categories', { params });
   }
 
   async getCategory(id: number): Promise<MenuCategory> {
-    return apiClient.get<MenuCategory>(`/menu/categories/${id}`);
+    return apiClient.get<MenuCategory>(`/api/v1/menu/categories/${id}`);
   }
 
   async createCategory(categoryData: Omit<MenuCategory, 'id'>): Promise<MenuCategory> {
-    return apiClient.post<MenuCategory>('/menu/categories', categoryData);
+    return apiClient.post<MenuCategory>('/api/v1/menu/categories', categoryData);
   }
 
   async updateCategory(id: number, categoryData: Partial<MenuCategory>): Promise<MenuCategory> {
-    return apiClient.put<MenuCategory>(`/menu/categories/${id}`, categoryData);
+    return apiClient.put<MenuCategory>(`/api/v1/menu/categories/${id}`, categoryData);
   }
 
   async deleteCategory(id: number): Promise<void> {
-    return apiClient.delete(`/menu/categories/${id}`);
+    return apiClient.delete(`/api/v1/menu/categories/${id}`);
   }
 
   // Public methods (không cần auth)
@@ -68,19 +68,19 @@ export class MenuService {
     categories: MenuCategory[];
     dishes: Dish[];
   }> {
-    return apiClient.get('/menu/public');
+    return apiClient.get('/api/v1/menu/public');
   }
 
   async getPopularDishes(limit: number = 10): Promise<Dish[]> {
-    return apiClient.get<Dish[]>(`/menu/popular?limit=${limit}`);
+    return apiClient.get<Dish[]>(`/api/v1/menu/popular?limit=${limit}`);
   }
 
   async getFeaturedDishes(): Promise<Dish[]> {
-    return apiClient.get<Dish[]>('/menu/featured');
+    return apiClient.get<Dish[]>('/api/v1/menu/featured');
   }
 
   async searchDishes(query: string): Promise<Dish[]> {
-    return apiClient.get<Dish[]>(`/menu/search?q=${encodeURIComponent(query)}`);
+    return apiClient.get<Dish[]>(`/api/v1/menu/search?q=${encodeURIComponent(query)}`);
   }
 }
 
