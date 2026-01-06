@@ -40,6 +40,7 @@ import { chatService } from '../../services/chatService';
 import { useAuth } from '../../hooks/useAuth';
 import TableBooking from '../customer/TableBooking';
 import TableStatusView from '../customer/TableStatusView';
+import PaymentDialog from '../customer/PaymentDialog';
 
 interface DishItem {
   name: string;
@@ -102,6 +103,8 @@ const messageSuggestions = [
   { category: '🛒 Gọi món', text: 'Xác nhận đơn hàng', color: '#9C27B0' },
   { category: '🛒 Gọi món', text: 'Thêm món vào đơn', color: '#9C27B0' },
   { category: '🛒 Gọi món', text: 'Sửa đơn hàng', color: '#9C27B0' },
+  { category: '💳 Thanh toán', text: 'Tôi muốn thanh toán', color: '#795548' },
+  { category: '💳 Thanh toán', text: 'Thanh toán đơn hàng', color: '#795548' },
   
   // Restaurant Info
   { category: 'ℹ️ Thông tin', text: 'Giờ mở cửa', color: '#607D8B' },
@@ -149,6 +152,8 @@ const ChatInterface: React.FC = () => {
   });
   const [bookingDialogOpen, setBookingDialogOpen] = useState(false);
   const [statusViewOpen, setStatusViewOpen] = useState(false);
+  const [paymentDialogOpen, setPaymentDialogOpen] = useState(false);
+  const [currentOrder, setCurrentOrder] = useState<any>(null);
   const [bookingInitialData, setBookingInitialData] = useState<{
     guests?: number;
     date?: string;
@@ -311,6 +316,21 @@ Bạn có thể sử dụng các nút bên dưới hoặc nhập trực tiếp!`
         phone: user?.phone
       });
       console.log('Chat response:', response);
+      
+      // Check for payment triggers in response
+      if (response.response && (
+        response.response.includes('thanh toán') ||
+        response.response.includes('payment') ||
+        response.response.includes('đã hoàn thành') ||
+        response.response.includes('xác nhận đơn hàng')
+      )) {
+        // Try to extract order ID or set current order for payment
+        // This could be enhanced to extract actual order data from response
+        const orderIdMatch = response.response.match(/#(\d+)/);
+        if (orderIdMatch) {
+          setCurrentOrder({ id: orderIdMatch[1] });
+        }
+      }
       
       // Xử lý response từ Rasa
       if (response.dishes && response.dishes.length > 0) {
@@ -926,6 +946,16 @@ Bạn có thể sử dụng các nút bên dưới hoặc nhập trực tiếp!`
           onClick={() => setStatusViewOpen(false)}
         />
       )}
+
+      {/* Payment Dialog */}
+      <PaymentDialog
+        open={paymentDialogOpen}
+        onClose={() => {
+          setPaymentDialogOpen(false);
+          setCurrentOrder(null);
+        }}
+        orderId={currentOrder?.id}
+      />
     </Box>
   );
 };

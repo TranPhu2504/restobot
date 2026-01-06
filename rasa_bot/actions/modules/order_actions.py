@@ -554,11 +554,9 @@ class ActionConfirmOrder(Action):
                 return []
             
             # Cập nhật trạng thái đơn hàng thành CONFIRMED
-            update_data = {"status": "CONFIRMED"}
-            update_response = requests.put(
-                f"{API_BASE_URL}/orders/orders/{current_order_id}",
+            update_response = requests.patch(
+                f"{API_BASE_URL}/orders/orders/{current_order_id}/confirm",
                 headers=headers,
-                json=update_data,
                 timeout=10
             )
             

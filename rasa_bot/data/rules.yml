@@ -166,3 +166,24 @@ rules:
   steps:
   - intent: nlu_fallback
   - action: utter_ask_rephrase
+
+# ===== PAYMENT RULES =====
+- rule: Initiate payment process
+  steps:
+  - intent: request_payment
+  - action: action_initiate_payment
+
+- rule: Process payment method
+  steps:
+  - intent: process_payment
+  - action: action_process_payment
+
+- rule: Check payment status
+  steps:
+  - intent: check_payment_status
+  - action: action_check_payment_status
+
+- rule: Show payment methods
+  steps:
+  - intent: select_payment_method
+  - action: action_initiate_payment

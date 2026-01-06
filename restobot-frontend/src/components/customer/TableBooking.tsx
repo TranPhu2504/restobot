@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
   Box,
   Card,
@@ -27,25 +27,22 @@ import {
   ListItem,
   ListItemIcon,
   ListItemText,
-  IconButton,
-  Tooltip,
   Avatar
 } from '@mui/material';
 import {
   RestaurantOutlined as TableIcon,
-  AccessTime as TimeIcon,
   DateRange as DateIcon,
   People as PeopleIcon,
   LocationOn as LocationIcon,
   CheckCircle as ConfirmIcon,
+  CheckCircle,
   ArrowBack as BackIcon,
-  ErrorOutline as ErrorIcon,
   Info as InfoIcon
 } from '@mui/icons-material';
 import { tableService } from '../../services/tableService';
 import { Table, CreateReservationRequest } from '../../types';
-import { useAuth } from '../../context/AuthContext';
-import { format, addDays, isBefore, startOfDay } from 'date-fns';
+import { useAuth } from '../../hooks/useAuth';
+import { format, addDays } from 'date-fns';
 import { vi } from 'date-fns/locale';
 
 interface TableBookingProps {
@@ -92,11 +89,43 @@ const TableBooking: React.FC<TableBookingProps> = ({ open, onClose, initialData 
 
   const steps = ['Chọn thời gian', 'Chọn bàn', 'Thông tin khách hàng', 'Xác nhận'];
 
-  const timeSlots = [
-    '11:00', '11:30', '12:00', '12:30', '13:00', '13:30',
-    '17:00', '17:30', '18:00', '18:30', '19:00', '19:30',
-    '20:00', '20:30', '21:00', '21:30'
-  ];
+  // Business hours with lunch break validation
+  const getAvailableTimeSlots = () => {
+    const selectedDate = new Date(bookingData.date);
+    const today = new Date();
+    const isWeekday = selectedDate.getDay() >= 1 && selectedDate.getDay() <= 5; // Mon-Fri
+    
+    let timeSlots = [
+      // Morning slots
+      '10:00', '10:30', '11:00', '11:30', '12:00', '12:30', '13:00', '13:30',
+      // Evening slots  
+      '17:00', '17:30', '18:00', '18:30', '19:00', '19:30',
+      '20:00', '20:30', '21:00', '21:30'
+    ];
+
+    // Remove lunch break hours (14:00-17:00) for weekdays
+    if (isWeekday) {
+      timeSlots = timeSlots.filter(time => {
+        const [hour] = time.split(':').map(Number);
+        return !(hour >= 14 && hour < 17); // Remove 14:00-16:30
+      });
+    }
+
+    // If today, remove past time slots
+    if (selectedDate.toDateString() === today.toDateString()) {
+      const currentHour = today.getHours();
+      const currentMinute = today.getMinutes();
+      
+      timeSlots = timeSlots.filter(time => {
+        const [hour, minute] = time.split(':').map(Number);
+        return hour > currentHour || (hour === currentHour && minute > currentMinute + 60); // 1 hour advance booking
+      });
+    }
+
+    return timeSlots;
+  };
+
+  const timeSlots = getAvailableTimeSlots();
 
   useEffect(() => {
     if (open && initialData) {
@@ -110,13 +139,7 @@ const TableBooking: React.FC<TableBookingProps> = ({ open, onClose, initialData 
   }, [open, initialData]);
 
   // Check availability when date, time, or guests change
-  useEffect(() => {
-    if (bookingData.date && bookingData.time && bookingData.guests > 0) {
-      checkAvailability();
-    }
-  }, [bookingData.date, bookingData.time, bookingData.guests]);
-
-  const checkAvailability = async () => {
+  const checkAvailability = useCallback(async () => {
     if (!bookingData.date || !bookingData.time || bookingData.guests <= 0) return;
 
     try {
@@ -143,7 +166,13 @@ const TableBooking: React.FC<TableBookingProps> = ({ open, onClose, initialData 
     } finally {
       setLoading(false);
     }
-  };
+  }, [bookingData.date, bookingData.time, bookingData.guests]);
+
+  useEffect(() => {
+    if (bookingData.date && bookingData.time && bookingData.guests > 0) {
+      checkAvailability();
+    }
+  }, [bookingData.date, bookingData.time, bookingData.guests, checkAvailability]);
 
   const handleNext = () => {
     if (activeStep === 0 && (!bookingData.date || !bookingData.time || availableTables.length === 0)) {
@@ -234,7 +263,27 @@ const TableBooking: React.FC<TableBookingProps> = ({ open, onClose, initialData 
   };
 
   const isTimeSlotAvailable = (time: string) => {
-    return !suggestedTimes.length || suggestedTimes.includes(time);
+    // Check business hours validation
+    const [hour] = time.split(':').map(Number);
+    const selectedDate = new Date(bookingData.date);
+    const isWeekday = selectedDate.getDay() >= 1 && selectedDate.getDay() <= 5; // Mon-Fri
+    
+    // Check lunch break (14:00-17:00 on weekdays)
+    if (isWeekday && hour >= 14 && hour < 17) {
+      return false;
+    }
+    
+    // Check operating hours (10:00-22:00)
+    if (hour < 10 || hour >= 22) {
+      return false;
+    }
+    
+    // Check suggested times if available
+    if (suggestedTimes.length > 0) {
+      return suggestedTimes.includes(time);
+    }
+    
+    return true;
   };
 
   const renderStepContent = () => {

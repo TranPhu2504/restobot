@@ -45,6 +45,12 @@ intents:
   - contextual_question
   - modify_specific_field
   - order_item_reference
+  
+  # Thanh toán
+  - request_payment
+  - process_payment
+  - check_payment_status
+  - select_payment_method
 
 entities:
   - number_of_people
@@ -58,6 +64,7 @@ entities:
   - modification_type
   - phone_number
   - customer_name
+  - payment_method
 
 slots:
   number_of_people:
@@ -219,6 +226,36 @@ slots:
     type: text
     initial_value: null
     influence_conversation: true
+    mappings:
+    - type: custom
+    
+  # Payment slots
+  payment_order_id:
+    type: text
+    initial_value: null
+    influence_conversation: false
+    mappings:
+    - type: custom
+    
+  payment_amount:
+    type: float
+    initial_value: null
+    influence_conversation: false
+    mappings:
+    - type: custom
+    
+  payment_method:
+    type: text
+    initial_value: null
+    influence_conversation: false
+    mappings:
+    - type: from_entity
+      entity: payment_method
+    
+  last_order_id:
+    type: text
+    initial_value: null
+    influence_conversation: false
     mappings:
     - type: custom
     
@@ -385,6 +422,11 @@ actions:
   # Enhanced order confirmation actions
   - action_confirm_order_item
   - action_select_dish_by_number
+
+  # Payment actions
+  - action_initiate_payment
+  - action_process_payment
+  - action_check_payment_status
 
 session_config:
   session_expiration_time: 60

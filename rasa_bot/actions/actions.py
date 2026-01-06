@@ -81,6 +81,13 @@ try:
         ActionConfirmOrderItem,
         ActionSelectDishByNumber
     )
+    
+    # Import payment actions
+    from modules.payment_actions import (
+        ActionInitiatePayment,
+        ActionProcessPayment,
+        ActionCheckPaymentStatus
+    )
 
     print("All action modules imported successfully!")
 

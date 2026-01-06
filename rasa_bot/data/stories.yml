@@ -230,3 +230,55 @@ stories:
   - action: action_conversation_manager
   - intent: order_food
   - action: action_add_to_order
+
+# ===== PAYMENT STORIES =====
+- story: simple payment request
+  steps:
+  - intent: request_payment
+  - action: action_initiate_payment
+
+- story: payment with cash
+  steps:
+  - intent: request_payment
+  - action: action_initiate_payment
+  - intent: process_payment
+    entities:
+    - payment_method: "cash"
+  - action: action_process_payment
+
+- story: payment with card
+  steps:
+  - intent: request_payment
+  - action: action_initiate_payment
+  - intent: process_payment
+    entities:
+    - payment_method: "card"
+  - action: action_process_payment
+
+- story: payment with bank transfer
+  steps:
+  - intent: request_payment
+  - action: action_initiate_payment
+  - intent: process_payment
+    entities:
+    - payment_method: "bank_transfer"
+  - action: action_process_payment
+
+- story: check payment status
+  steps:
+  - intent: check_payment_status
+  - action: action_check_payment_status
+
+- story: order then payment flow
+  steps:
+  - intent: confirm_order
+  - action: action_confirm_order
+  - intent: request_payment
+  - action: action_initiate_payment
+  - intent: process_payment
+  - action: action_process_payment
+
+- story: ask payment methods
+  steps:
+  - intent: select_payment_method
+  - action: action_initiate_payment

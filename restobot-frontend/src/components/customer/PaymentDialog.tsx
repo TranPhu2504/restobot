@@ -12,16 +12,12 @@ import {
   List,
   ListItem,
   ListItemText,
-  ListItemIcon,
-  Chip,
   Alert,
   RadioGroup,
   FormControlLabel,
   Radio,
   FormControl,
-  FormLabel,
   TextField,
-  InputAdornment,
   Card,
   CardContent,
   IconButton,
@@ -35,18 +31,14 @@ import {
   Payment as PaymentIcon,
   CreditCard as CardIcon,
   AccountBalance as BankIcon,
-  QrCode as QrIcon,
+  QrCode2 as QrIcon,
   Money as CashIcon,
-  Receipt as ReceiptIcon,
   CheckCircle as ConfirmIcon,
-  Error as ErrorIcon,
   ContentCopy as CopyIcon,
   Timer as TimerIcon
 } from '@mui/icons-material';
 import { orderService } from '../../services/orderService';
 import { Order, OrderItem } from '../../types';
-import { format } from 'date-fns';
-import { vi } from 'date-fns/locale';
 
 interface PaymentDialogProps {
   open: boolean;

@@ -3,6 +3,7 @@ from datetime import date, datetime, timedelta
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
 from sqlalchemy import func
+from pydantic import BaseModel
 from app.core.database import get_db
 from app.crud.order import order as order_crud, reservation as reservation_crud
 from app.crud.table import table as table_crud
@@ -578,3 +579,148 @@ def add_item_to_order(
             status_code=500,
             detail=f"Internal server error: {error_msg}"
         )
+
+
+@router.patch("/orders/{order_id}/confirm", response_model=Order)
+def confirm_order(
+    *,
+    db: Session = Depends(get_db),
+    order_id: int,
+    current_user = Depends(get_current_user_or_rasa),
+) -> Any:
+    """
+    Confirm order by customer (changes status to CONFIRMED).
+    """
+    order = order_crud.get(db, id=order_id)
+    if not order:
+        raise HTTPException(status_code=404, detail="Order not found")
+    
+    # Check permissions - only the customer who owns the order or staff can confirm
+    if current_user:
+        from app.models.user import UserRole
+        if (current_user.role == UserRole.customer and 
+            order.customer_id != current_user.id):
+            raise HTTPException(status_code=403, detail="Not enough permissions")
+    
+    # Check if order is in a confirmable state
+    if order.status not in [OrderStatus.pending, OrderStatus.draft]:
+        raise HTTPException(
+            status_code=400, 
+            detail=f"Order cannot be confirmed. Current status: {order.status}"
+        )
+    
+    # Update status to confirmed
+    order_update = OrderUpdate(status=OrderStatus.confirmed)
+    order = order_crud.update(db, db_obj=order, obj_in=order_update)
+    
+    return order
+
+
+@router.patch("/orders/{order_id}/cancel", response_model=Order)
+def cancel_order(
+    *,
+    db: Session = Depends(get_db),
+    order_id: int,
+    current_user = Depends(get_current_user_or_rasa),
+) -> Any:
+    """
+    Cancel order by customer or staff.
+    """
+    order = order_crud.get(db, id=order_id)
+    if not order:
+        raise HTTPException(status_code=404, detail="Order not found")
+    
+    # Check permissions - only the customer who owns the order or staff can cancel
+    if current_user:
+        from app.models.user import UserRole
+        if (current_user.role == UserRole.customer and 
+            order.customer_id != current_user.id):
+            raise HTTPException(status_code=403, detail="Not enough permissions")
+    
+    # Check if order can be cancelled
+    if order.status in [OrderStatus.served, OrderStatus.completed, OrderStatus.cancelled]:
+        raise HTTPException(
+            status_code=400, 
+            detail=f"Order cannot be cancelled. Current status: {order.status}"
+        )
+    
+    # Update status to cancelled
+    order_update = OrderUpdate(status=OrderStatus.cancelled)
+    order = order_crud.update(db, db_obj=order, obj_in=order_update)
+    
+    return order
+
+
+class PaymentRequest(BaseModel):
+    payment_method: str
+    amount: float
+    transaction_id: Optional[str] = None
+    payment_details: Optional[dict] = None
+
+
+@router.post("/orders/{order_id}/payment", response_model=Order)
+def process_payment(
+    *,
+    db: Session = Depends(get_db),
+    order_id: int,
+    payment_data: PaymentRequest,
+    current_user = Depends(get_current_user_or_rasa),
+) -> Any:
+    """
+    Process payment for order.
+    """
+    order = order_crud.get(db, id=order_id)
+    if not order:
+        raise HTTPException(status_code=404, detail="Order not found")
+    
+    # Check permissions
+    if current_user:
+        from app.models.user import UserRole
+        if (current_user.role == UserRole.customer and 
+            order.customer_id != current_user.id):
+            raise HTTPException(status_code=403, detail="Not enough permissions")
+    
+    # Check if order can be paid
+    if order.status not in [OrderStatus.confirmed, OrderStatus.ready, OrderStatus.served]:
+        raise HTTPException(
+            status_code=400, 
+            detail=f"Order cannot be paid. Current status: {order.status}"
+        )
+    
+    if order.payment_status == PaymentStatus.paid:
+        raise HTTPException(status_code=400, detail="Order already paid")
+    
+    # Validate payment amount
+    if payment_data.amount != order.total_amount:
+        raise HTTPException(
+            status_code=400, 
+            detail=f"Payment amount ({payment_data.amount}) does not match order total ({order.total_amount})"
+        )
+    
+    # Validate payment method
+    valid_methods = ['cash', 'card', 'bank_transfer', 'qr_code', 'mobile_payment']
+    if payment_data.payment_method not in valid_methods:
+        raise HTTPException(
+            status_code=400, 
+            detail=f"Invalid payment method. Valid methods: {', '.join(valid_methods)}"
+        )
+    
+    # Process payment (in real system, would integrate with payment gateway)
+    # For now, we'll simulate successful payment
+    payment_status = PaymentStatus.paid
+    
+    # Update order payment status
+    from app.schemas.order import OrderUpdate
+    order_update = OrderUpdate(
+        payment_status=payment_status,
+        payment_method=payment_data.payment_method,
+        payment_date=datetime.utcnow()
+    )
+    
+    # If payment successful and order is served, mark as completed
+    if payment_status == PaymentStatus.paid and order.status == OrderStatus.served:
+        order_update.status = OrderStatus.completed
+    
+    order = order_crud.update(db, db_obj=order, obj_in=order_update)
+    
+    return order

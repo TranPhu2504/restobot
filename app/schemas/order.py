@@ -125,6 +125,8 @@ class OrderUpdate(BaseModel):
     table_id: Optional[int] = None
     status: Optional[OrderStatus] = None
     payment_status: Optional[PaymentStatus] = None
+    payment_method: Optional[str] = None
+    payment_date: Optional[datetime] = None
     notes: Optional[str] = None
 
 

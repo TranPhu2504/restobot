@@ -60,7 +60,12 @@ class CRUDReservation:
         db.add(db_obj)
         db.commit()
         db.refresh(db_obj)
+        
+        # Update table status after creating reservation
+        self._update_table_status_for_reservation(db, db_obj.id)
+        
         return db_obj
+        
     def update(
         self, db: Session, db_obj: Reservation, obj_in: ReservationUpdate
     ) -> Reservation:
@@ -70,7 +75,23 @@ class CRUDReservation:
         db.add(db_obj)
         db.commit()
         db.refresh(db_obj)
+        
+        # Update table status after updating reservation
+        self._update_table_status_for_reservation(db, db_obj.id)
+        
         return db_obj
+        
+    def _update_table_status_for_reservation(self, db: Session, reservation_id: int) -> None:
+        """Helper method to update table status when reservation changes"""
+        try:
+            from app.services.table_status_manager import create_table_status_manager
+            status_manager = create_table_status_manager(db)
+            status_manager.update_table_status_for_reservation(reservation_id)
+        except Exception as e:
+            # Log error but don't fail the main operation
+            import logging
+            logger = logging.getLogger(__name__)
+            logger.error(f"Failed to update table status for reservation {reservation_id}: {e}")
     def get_multi_with_details(
         self, 
         db: Session, 

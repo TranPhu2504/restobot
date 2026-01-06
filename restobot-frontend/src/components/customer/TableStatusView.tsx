@@ -47,11 +47,25 @@ const TableStatusView: React.FC<TableStatusViewProps> = ({
   const [lastUpdated, setLastUpdated] = useState<Date>(new Date());
 
   useEffect(() => {
-    loadTables();
+    const loadTablesAsync = async () => {
+      try {
+        setError(null);
+        const response = await tableService.getTables({ size: maxTables || 20 });
+        setTables(response.data);
+        setLastUpdated(new Date());
+      } catch (err: any) {
+        console.error('Error loading tables:', err);
+        setError('Không thể tải thông tin bàn. Vui lòng thử lại.');
+      } finally {
+        setLoading(false);
+      }
+    };
+    
+    loadTablesAsync();
     // Auto refresh every 30 seconds
-    const interval = setInterval(loadTables, 30000);
+    const interval = setInterval(loadTablesAsync, 30000);
     return () => clearInterval(interval);
-  }, []);
+  }, [maxTables]);
 
   const loadTables = async () => {
     try {

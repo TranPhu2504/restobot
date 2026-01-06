@@ -35,11 +35,17 @@ class Reservation(Base):
     id = Column(Integer, primary_key=True, index=True)
     customer_id = Column(Integer, ForeignKey("users.id"), nullable=False)
     table_id = Column(Integer, ForeignKey("tables.id"), nullable=False)
-    reservation_date = Column(DateTime(timezone=True), nullable=False)
+    reservation_datetime = Column(DateTime(timezone=True), nullable=False)  # Renamed from reservation_date
     party_size = Column(Integer, nullable=False)
     status = Column(SQLEnum(ReservationStatus), default=ReservationStatus.pending, nullable=False)
     special_requests = Column(Text, nullable=True)
     notes = Column(Text, nullable=True)
+    
+    # Arrival tracking fields
+    actual_arrival_time = Column(DateTime(timezone=True), nullable=True)
+    arrival_status = Column(String(50), nullable=True)  # early, on_time, late, very_late, no_show
+    estimated_end_time = Column(DateTime(timezone=True), nullable=True)
+    
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     updated_at = Column(DateTime(timezone=True), onupdate=func.now())
 
@@ -57,6 +63,8 @@ class Order(Base):
     table_id = Column(Integer, ForeignKey("tables.id"), nullable=True)
     status = Column(SQLEnum(OrderStatus), default=OrderStatus.pending, nullable=False)
     payment_status = Column(SQLEnum(PaymentStatus), default=PaymentStatus.pending, nullable=False)
+    payment_method = Column(String, nullable=True)  # cash, card, bank_transfer, qr_code, mobile_payment
+    payment_date = Column(DateTime(timezone=True), nullable=True)
     total_amount = Column(Float, default=0.0, nullable=False)
     tax_amount = Column(Float, default=0.0, nullable=False)
     discount_amount = Column(Float, default=0.0, nullable=False)

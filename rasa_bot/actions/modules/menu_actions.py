@@ -13,37 +13,118 @@ from .auth_helper import auth_helper, get_auth_headers_from_tracker
 API_BASE_URL = "http://api:8000/api/v1"
 
 def find_exact_dish_match(dish_name: str, menu_items: list) -> dict:
-    """Find exact dish match with fuzzy matching for better accuracy"""
+    """Find exact dish match with improved accuracy for Vietnamese dishes"""
     import difflib
+    import re
     
     if not dish_name or not menu_items:
         return None
     
-    dish_name_lower = dish_name.lower().strip()
+    # Normalize dish name for better matching
+    dish_name_normalized = normalize_vietnamese_dish_name(dish_name.lower().strip())
     
-    # 1. Exact name match (case insensitive)
+    print(f"Looking for dish: '{dish_name}' -> normalized: '{dish_name_normalized}'")
+    
+    # Check if input is too short/ambiguous (single word that appears in multiple dishes)
+    dish_words = dish_name_normalized.split()
+    if len(dish_words) == 1:
+        # Count how many dishes contain this single word
+        matching_count = 0
+        for item in menu_items:
+            item_name_normalized = normalize_vietnamese_dish_name(item.get('name', '').lower())
+            if dish_words[0] in item_name_normalized.split():
+                matching_count += 1
+        
+        # If more than one dish contains this word, it's ambiguous - don't auto-match
+        if matching_count > 1:
+            print(f"AMBIGUOUS: Single word '{dish_words[0]}' appears in {matching_count} dishes")
+            return None
+    
+    # 1. EXACT name match (case insensitive, after normalization)
     for item in menu_items:
-        if item.get('name', '').lower() == dish_name_lower:
+        item_name_normalized = normalize_vietnamese_dish_name(item.get('name', '').lower())
+        print(f"Comparing with: '{item.get('name', '')}' -> normalized: '{item_name_normalized}'")
+        
+        if dish_name_normalized == item_name_normalized:
+            print(f"EXACT MATCH found: {item.get('name')}")
             return item
     
-    # 2. Contains match
+    # 2. SUBSTRING match - only if words exist in correct order AND not ambiguous
     for item in menu_items:
-        item_name_lower = item.get('name', '').lower()
-        if dish_name_lower in item_name_lower or item_name_lower in dish_name_lower:
-            return item
+        item_name_normalized = normalize_vietnamese_dish_name(item.get('name', '').lower())
+        
+        # Check if all words from dish_name appear in the same order in item_name
+        dish_words = dish_name_normalized.split()
+        item_words = item_name_normalized.split()
+        
+        if len(dish_words) >= 2 and all(word in item_words for word in dish_words):
+            # Check if words appear in similar order (allow some flexibility)
+            dish_positions = []
+            for word in dish_words:
+                if word in item_words:
+                    dish_positions.append(item_words.index(word))
+            
+            # If positions are roughly in order, it's a good match
+            if dish_positions == sorted(dish_positions):
+                print(f"SUBSTRING MATCH found: {item.get('name')}")
+                return item
     
-    # 3. Fuzzy matching (similarity threshold = 0.6)
+    # 3. HIGH-THRESHOLD fuzzy matching ONLY (similarity >= 0.85 for safety)
     best_match = None
-    best_ratio = 0.6
+    best_ratio = 0.85  # Much higher threshold to prevent wrong matches
     
     for item in menu_items:
-        item_name_lower = item.get('name', '').lower()
-        ratio = difflib.SequenceMatcher(None, dish_name_lower, item_name_lower).ratio()
+        item_name_normalized = normalize_vietnamese_dish_name(item.get('name', '').lower())
+        ratio = difflib.SequenceMatcher(None, dish_name_normalized, item_name_normalized).ratio()
+        
+        print(f"Fuzzy match ratio for '{item.get('name')}': {ratio:.3f}")
+        
         if ratio > best_ratio:
             best_ratio = ratio
             best_match = item
     
+    if best_match:
+        print(f"HIGH-CONFIDENCE FUZZY MATCH found: {best_match.get('name')} (ratio: {best_ratio:.3f})")
+    else:
+        print("NO CONFIDENT MATCH found")
+    
     return best_match
+
+def normalize_vietnamese_dish_name(dish_name: str) -> str:
+    """Normalize Vietnamese dish names for better matching"""
+    import re
+    
+    # Convert to lowercase
+    normalized = dish_name.lower().strip()
+    
+    # Remove extra spaces and special characters
+    normalized = re.sub(r'\s+', ' ', normalized)
+    normalized = re.sub(r'[^\w\sàáạảãâầấậẩẫăằắặẳẵèéẹẻẽêềếệểễìíịỉĩòóọỏõôồốộổỗơờớợởỡùúụủũưừứựửữỳýỵỷỹđ]', '', normalized)
+    
+    # Standardize common Vietnamese food terms
+    vietnamese_food_replacements = {
+        'pho': 'phở',
+        'bun': 'bún',
+        'com': 'cơm',
+        'banh': 'bánh',
+        'nem': 'nem',
+        'chay': 'chay',
+        'bo': 'bò',
+        'ga': 'gà',
+        'heo': 'heo',
+        'tom': 'tôm',
+        'ca': 'cá',
+        'tai': 'tái',
+        'chin': 'chín',
+        'nam': 'nấm',
+        'rau': 'rau'
+    }
+    
+    # Apply replacements while preserving word boundaries
+    for eng, viet in vietnamese_food_replacements.items():
+        normalized = re.sub(rf'\b{eng}\b', viet, normalized)
+    
+    return normalized.strip()
 
 def get_similar_dishes(dish_name: str, menu_items: list, limit: int = 3) -> list:
     """Get similar dishes for suggestions when exact match not found"""
@@ -52,13 +133,15 @@ def get_similar_dishes(dish_name: str, menu_items: list, limit: int = 3) -> list
     if not dish_name or not menu_items:
         return []
     
-    dish_name_lower = dish_name.lower().strip()
+    dish_name_normalized = normalize_vietnamese_dish_name(dish_name.lower().strip())
     matches = []
     
     for item in menu_items:
-        item_name_lower = item.get('name', '').lower()
-        ratio = difflib.SequenceMatcher(None, dish_name_lower, item_name_lower).ratio()
-        if ratio > 0.3:  # Lower threshold for suggestions
+        item_name_normalized = normalize_vietnamese_dish_name(item.get('name', '').lower())
+        ratio = difflib.SequenceMatcher(None, dish_name_normalized, item_name_normalized).ratio()
+        
+        # Only suggest if similarity is meaningful (>= 0.4) but not too high (< 0.85 to avoid near-exact matches)
+        if 0.4 <= ratio < 0.85:
             matches.append((item, ratio))
     
     # Sort by similarity and return top matches

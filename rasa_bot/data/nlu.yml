@@ -480,69 +480,81 @@ nlu:
     - bạn là bot
     - who are you
 
-# ===== ENTITIES & SYNONYMS =====
-entities:
-  - number_of_people
-  - date
-  - time
-  - dish_name
-  - quantity
-  - table_type
-  - location
+# ===== PAYMENT INTENTS =====
+- intent: request_payment
+  examples: |
+    - tôi muốn thanh toán
+    - thanh toán đơn hàng
+    - tính tiền
+    - trả tiền
+    - thanh toán bill
+    - tôi cần thanh toán
+    - muốn pay
+    - payment please
+    - bill please
+    - check please
+    - tôi muốn trả tiền món ăn
+    - có thể thanh toán được không
+    - làm sao để thanh toán
+    - tôi muốn settle bill
 
-synonyms:
-  - "2":
-    - "hai"
-    - "2 người"
-    - "đôi"
-    - "couple"
-    
-  - "4":
-    - "bốn"
-    - "4 người"
-    - "gia đình"
-    - "family"
-    
-  - "6":
-    - "sáu"
-    - "6 người"
-    - "nhóm"
-    - "group"
-    
-  - "hôm nay":
-    - "today"
-    - "ngày hôm nay"
-    - "trong ngày"
-    
-  - "ngày mai":
-    - "tomorrow"
-    - "tối mai"
-    - "mai"
-    
-  - "tối nay":
-    - "tonight"
-    - "tối hôm nay"
-    - "chiều nay"
-    
-  - "19:00":
-    - "7 giờ tối"
-    - "7pm"
-    - "bảy giờ tối"
-    - "19h"
-    
-  - "20:00":
-    - "8 giờ tối"
-    - "8pm"
-    - "tám giờ tối"
-    - "20h"
-    
-  - "VIP":
-    - "vip"
-    - "cao cấp"
-    - "đặc biệt"
-    - "premium"
-    
-  - "thường":
-    - "bình thường"
-    - "regular"
-    - "standard"
+- intent: process_payment
+  examples: |
+    - tôi thanh toán bằng tiền mặt
+    - thanh toán bằng thẻ
+    - tôi chuyển khoản
+    - thanh toán qua QR code
+    - tôi trả bằng [cash](payment_method)
+    - thanh toán bằng [thẻ tín dụng](payment_method)  
+    - tôi muốn [chuyển khoản](payment_method)
+    - thanh toán bằng [mobile banking](payment_method)
+    - trả bằng [tiền mặt](payment_method)
+    - [card](payment_method) payment
+    - pay with [cash](payment_method)
+    - [bank transfer](payment_method)
+    - [QR code](payment_method) payment
+    - thanh toán [tiền mặt](payment_method)
+
+- intent: check_payment_status
+  examples: |
+    - kiểm tra thanh toán
+    - trạng thái thanh toán
+    - đã thanh toán chưa
+    - payment status
+    - check bill status
+    - tôi đã trả tiền chưa
+    - đơn hàng đã thanh toán chưa
+    - kiểm tra trạng thái bill
+    - có cần thanh toán thêm không
+
+- intent: select_payment_method
+  examples: |
+    - tôi muốn chọn phương thức thanh toán
+    - phương thức thanh toán nào có sẵn
+    - có thể thanh toán bằng gì
+    - payment methods
+    - các cách thanh toán
+    - tôi có thể trả bằng gì
+    - phương thức nào được chấp nhận
+    - payment options
+
+# ===== PAYMENT ENTITIES =====
+entities:
+  - payment_method
+
+lookup:
+  - number_of_people:
+      - "2"
+      - "4"
+      - "6"
+      - "8"
+      - "10"
+      
+  - date:
+      - "hôm nay"
+      - "ngày mai"
+      - "tối nay"
+      
+  - time:
+      - "19:00"
+      - "20:00"

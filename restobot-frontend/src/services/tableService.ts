@@ -36,8 +36,38 @@ export class TableService {
     return apiClient.delete(`/tables/${id}`);
   }
 
-  async updateTableStatus(id: number, status: Table['current_status']): Promise<Table> {
-    return apiClient.patch<Table>(`/tables/${id}/status`, { status });
+  async updateTableStatus(id: number, updateData: { status: Table['current_status'] }): Promise<Table> {
+    return apiClient.patch<Table>(`/tables/${id}/status`, updateData);
+  }
+
+  // Table status management
+  async checkIn(tableId: number, orderId?: number): Promise<Table> {
+    return apiClient.post<Table>(`/tables/${tableId}/check-in`, { order_id: orderId });
+  }
+
+  async checkOut(tableId: number): Promise<Table> {
+    return apiClient.post<Table>(`/tables/${tableId}/check-out`);
+  }
+
+  async completeTableCleaning(tableId: number): Promise<Table> {
+    return apiClient.post<Table>(`/tables/${tableId}/cleaning-complete`);
+  }
+
+  async syncTableStatuses(): Promise<Table[]> {
+    return apiClient.post<Table[]>('/tables/sync-statuses');
+  }
+
+  async getStatusSummary(): Promise<{
+    status_summary: {
+      available: number;
+      occupied: number;
+      reserved: number;
+      cleaning: number;
+      maintenance: number;
+    };
+    timestamp: string;
+  }> {
+    return apiClient.get('/tables/status-summary');
   }
 
   // Available tables
