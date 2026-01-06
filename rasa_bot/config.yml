@@ -19,10 +19,5 @@ pipeline:
 
 policies:
   - name: RulePolicy
-    priority: 1
   - name: MemoizationPolicy
-    priority: 2
-  - name: UnexpecTEDIntentPolicy
-    priority: 3
   - name: TEDPolicy
-    priority: 4
