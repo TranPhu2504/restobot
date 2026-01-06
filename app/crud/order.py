@@ -128,7 +128,7 @@ class CRUDReservation:
                 "id": reservation.id,
                 "customer_id": reservation.customer_id,
                 "table_id": reservation.table_id,
-                "reservation_datetime": reservation.reservation_datetime,
+                "reservation_date": reservation.reservation_datetime,  # Map DB field to API field
                 "party_size": reservation.party_size,
                 "status": reservation.status,
                 "special_requests": reservation.special_requests,
@@ -190,7 +190,7 @@ class CRUDReservation:
                 "id": reservation.id,
                 "customer_id": reservation.customer_id,
                 "table_id": reservation.table_id,
-                "reservation_datetime": reservation.reservation_datetime,
+                "reservation_date": reservation.reservation_datetime,  # Map DB field to API field
                 "party_size": reservation.party_size,
                 "status": reservation.status,
                 "special_requests": reservation.special_requests,
@@ -229,7 +229,7 @@ class CRUDReservation:
             "id": reservation.id,
             "customer_id": reservation.customer_id,
             "table_id": reservation.table_id,
-            "reservation_datetime": reservation.reservation_datetime,
+            "reservation_date": reservation.reservation_datetime,  # Map DB field to API field
             "party_size": reservation.party_size,
             "status": reservation.status,
             "special_requests": reservation.special_requests,

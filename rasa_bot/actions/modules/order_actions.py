@@ -160,18 +160,8 @@ Không tìm thấy đặt bàn active của bạn.
                     item = matched_item
                     print(f"✅ Exact match found: {item.get('name')} (ID: {item.get('id')})")
                     
-                    # Confirm with user if there's any ambiguity
-                    if dish_name.lower() != item.get('name', '').lower():
-                        dispatcher.utter_message(text=f"🔍 **XÁC NHẬN MÓN ĂN**\n\nBạn muốn gọi: **{item['name']}**?\n💡 Nói 'Có' để xác nhận hoặc 'Không' để chọn lại.")
-                        return [
-                            SlotSet("pending_order_item", {
-                                "dish_name": item['name'],
-                                "menu_item_id": item['id'],
-                                "quantity": quantity,
-                                "price": item.get('price', 0)
-                            }),
-                            SlotSet("conversation_context", "confirm_order_item")
-                        ]
+                    # If exact match found, add directly without confirmation
+                    # (User already specified the dish name clearly)
                     table_id = active_reservation.get('table_id')
                     print("authenticated_user:", authenticated_user)
                     customer_id = authenticated_user.get('user_id') if authenticated_user else None

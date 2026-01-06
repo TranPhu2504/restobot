@@ -39,9 +39,14 @@ class ReservationUpdate(BaseModel):
         return v
 
 
-class ReservationInDBBase(ReservationBase):
+class ReservationInDBBase(BaseModel):
     id: int
     customer_id: Optional[int]
+    table_id: int
+    reservation_date: datetime  # This will be mapped from reservation_datetime in DB
+    party_size: int
+    special_requests: Optional[str] = None
+    notes: Optional[str] = None
     status: ReservationStatus
     created_at: datetime
     updated_at: Optional[datetime] = None

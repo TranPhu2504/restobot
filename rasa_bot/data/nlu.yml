@@ -260,6 +260,19 @@ nlu:
     - gọi [phở gà](dish_name) với
     - có thể cho tôi [cơm tấm](dish_name)
     - làm ơn cho [nem nướng](dish_name)
+    - gọi [Cà Phê Sữa Đá](dish_name)
+    - tôi muốn gọi [Bánh Mì Thịt Nướng](dish_name)
+    - cho tôi [Cơm Tấm Sườn Nướng](dish_name)
+    - đặt [Phở Bò Tái Nạm](dish_name)
+    - gọi [Bún Chả Hà Nội](dish_name)
+    - gọi món [Bánh Mì Thịt Nướng](dish_name)
+    - tôi muốn ăn [Cà Phê Sữa Đá](dish_name)
+    - cho tôi món [Bún Bò Huế](dish_name)
+    - đặt [Gỏi Cuốn Tôm Thịt](dish_name)
+    - gọi [Nem Rán](dish_name)
+    - tôi muốn [Chè Ba Màu](dish_name)
+    - cho [Sinh Tố Xoài](dish_name)
+    - gọi [Phở Chay](dish_name)
 
 - intent: add_to_order
   examples: |
@@ -276,6 +289,20 @@ nlu:
     - cho thêm vào đơn [sinh tố bơ](dish_name)
     - add more [spring roll](dish_name)
     - bổ sung [canh chua](dish_name)
+    - thêm [Bánh Mì Thịt Nướng](dish_name)
+    - cho thêm [Cơm Tấm Sườn Nướng](dish_name)
+    - thêm món [Cà Phê Sữa Đá](dish_name) vào đơn
+    - thêm món [Phở Bò Tái](dish_name) vào đơn
+    - thêm món [Bún Bò Huế](dish_name) vào đơn
+    - thêm món [Sinh Tố Xoài](dish_name) vào đơn
+    - thêm món [Gỏi Cuốn Tôm Thịt](dish_name) vào đơn
+    - thêm món [Nem Rán](dish_name) vào đơn
+    - thêm món [Chè Ba Màu](dish_name) vào đơn
+    - thêm món [Phở Chay](dish_name) vào đơn
+    - cho thêm món [Cà Phê Sữa Đá](dish_name)
+    - thêm [Cà Phê Sữa Đá](dish_name) vào đơn
+    - thêm [Phở Bò Tái](dish_name) vào đơn
+    - cho [Bún Bò Huế](dish_name) vào đơn
 
 - intent: view_current_order
   examples: |
@@ -368,6 +395,17 @@ nlu:
     - món thứ ba
     - món số 1
     - món số 2
+    - món số 3
+    - món số 4
+    - món số 5
+    - số 1
+    - số 2
+    - số 3
+    - 1
+    - 2
+    - 3
+    - 4
+    - 5
     - cái đầu
     - cái cuối
     - thứ nhất trong đơn
@@ -381,6 +419,10 @@ nlu:
     - món trước cuối
     - món chót
     - bỏ tất cả món đã gọi
+    - chọn món 1
+    - chọn món 2
+    - lấy món đầu
+    - lấy món thứ nhất
 
 # ===== RECOMMENDATIONS =====
 - intent: ask_popular_dishes

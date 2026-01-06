@@ -154,6 +154,18 @@ rules:
   - action: action_modify_booking
 
 # ===== AFFIRMATION/DENIAL RULES =====
+- rule: Confirm dish selection
+  steps:
+  - action: action_add_to_order
+  - intent: affirm
+  - action: action_confirm_order_item
+
+- rule: Select dish by number
+  steps:
+  - action: action_add_to_order
+  - intent: order_item_reference
+  - action: action_select_dish_by_number
+
 - rule: Handle deny request
   steps:
   - intent: deny

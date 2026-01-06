@@ -83,10 +83,38 @@ stories:
   - intent: order_food
   - action: action_add_to_order
 
+- story: order food with confirmation
+  steps:
+  - intent: order_food
+  - action: action_add_to_order
+  - intent: affirm
+  - action: action_confirm_order_item
+
+- story: order food and deny suggestion
+  steps:
+  - intent: order_food
+  - action: action_add_to_order
+  - intent: deny
+  - action: utter_deny_request
+
 - story: add to order
   steps:
   - intent: add_to_order
   - action: action_add_to_order
+
+- story: add to order with confirmation
+  steps:
+  - intent: add_to_order
+  - action: action_add_to_order
+  - intent: affirm
+  - action: action_confirm_order_item
+
+- story: select dish by number from suggestions
+  steps:
+  - intent: order_food
+  - action: action_add_to_order
+  - intent: order_item_reference
+  - action: action_select_dish_by_number
 
 - story: view current order
   steps:
