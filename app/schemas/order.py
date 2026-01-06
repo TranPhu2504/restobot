@@ -21,7 +21,12 @@ class ReservationBase(BaseModel):
 
 
 class ReservationCreate(ReservationBase):
-    customer_id: Optional[int] = None  # Can be null for walk-in reservationsime] = None
+    customer_id: Optional[int] = None  # Can be null for walk-in reservations
+
+
+class ReservationUpdate(BaseModel):
+    table_id: Optional[int] = None
+    reservation_date: Optional[datetime] = None
     party_size: Optional[int] = None
     status: Optional[ReservationStatus] = None
     special_requests: Optional[str] = None
