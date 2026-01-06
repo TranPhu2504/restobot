@@ -194,7 +194,7 @@ slots:
 
   # Enhanced order confirmation slots
   pending_order_item:
-    type: any
+    type: text
     initial_value: null
     influence_conversation: true
     mappings:
