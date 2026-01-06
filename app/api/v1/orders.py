@@ -3,19 +3,19 @@ from datetime import date, datetime, timedelta
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
 from sqlalchemy import func
-
 from app.core.database import get_db
 from app.crud.order import order as order_crud, reservation as reservation_crud
+from app.crud.table import table as table_crud
+from app.crud.menu import menu_item as menu_item_crud
 from app.schemas.order import (
     Order, OrderCreate, OrderUpdate, ReservationCreate, ReservationUpdate, ReservationWithDetails,
     OrderSummary, DashboardStats, PaginatedReservationResponse, PaginatedOrderResponse
 )
-from app.models.order import OrderStatus, PaymentStatus, ReservationStatus
+from app.models.order import OrderStatus, PaymentStatus, ReservationStatus, OrderItem, Order as OrderModel
+from app.models.menu import MenuItem
+from app.models.user import UserRole
 from app.api.deps import get_current_user, get_current_staff_user, get_current_user_optional, get_current_user_or_rasa
-
 router = APIRouter()
-
-
 # Reservation endpoints
 @router.get("/reservations/", response_model=PaginatedReservationResponse)
 def read_reservations(
@@ -52,8 +52,6 @@ def read_reservations(
         size=limit,
         pages=pages
     )
-
-
 @router.get("/reservations/my", response_model=List[ReservationWithDetails])
 def read_my_reservations(
     db: Session = Depends(get_db),
@@ -74,8 +72,6 @@ def read_my_reservations(
     )
     
     return reservations
-
-
 @router.post("/reservations/", response_model=ReservationWithDetails)
 def create_reservation(
     *,
@@ -91,7 +87,6 @@ def create_reservation(
         reservation_in.customer_id = current_user.id
     
     # Check if table exists and has sufficient capacity
-    from crud.table import table as table_crud
     table = table_crud.get(db, id=reservation_in.table_id)
     if not table:
         raise HTTPException(status_code=400, detail="Table not found")
@@ -125,8 +120,6 @@ def create_reservation(
     reservation_details = reservation_crud.get_with_details(db, reservation_id=reservation.id)
     
     return reservation_details
-
-
 @router.get("/reservations/{reservation_id}", response_model=ReservationWithDetails)
 def read_reservation(
     *,
@@ -142,14 +135,11 @@ def read_reservation(
         raise HTTPException(status_code=404, detail="Reservation not found")
     
     # Users can only see their own reservations unless they are staff+
-    from models.user import UserRole
     if (current_user.role == UserRole.customer and 
         reservation_details["customer_id"] != current_user.id):
         raise HTTPException(status_code=403, detail="Not enough permissions")
     
     return reservation_details
-
-
 @router.put("/reservations/{reservation_id}", response_model=ReservationWithDetails)
 def update_reservation(
     *,
@@ -166,7 +156,6 @@ def update_reservation(
         raise HTTPException(status_code=404, detail="Reservation not found")
     
     # Users can only modify their own reservations unless they are staff+
-    from models.user import UserRole
     if (current_user.role == UserRole.customer and 
         reservation.customer_id != current_user.id):
         raise HTTPException(status_code=403, detail="Not enough permissions")
@@ -182,8 +171,6 @@ def update_reservation(
     reservation_details = reservation_crud.get_with_details(db, reservation_id=reservation.id)
     
     return reservation_details
-
-
 @router.delete("/reservations/{reservation_id}", response_model=ReservationWithDetails)
 def cancel_reservation(
     *,
@@ -199,13 +186,11 @@ def cancel_reservation(
         raise HTTPException(status_code=404, detail="Reservation not found")
     
     # Users can only cancel their own reservations unless they are staff+
-    from models.user import UserRole
     if (current_user.role == UserRole.customer and 
         reservation.customer_id != current_user.id):
         raise HTTPException(status_code=403, detail="Not enough permissions")
     
     # Update status to cancelled instead of deleting
-    from schemas.order import ReservationUpdate
     reservation_update = ReservationUpdate(status=ReservationStatus.cancelled)
     reservation = reservation_crud.update(db, db_obj=reservation, obj_in=reservation_update)
     
@@ -213,8 +198,6 @@ def cancel_reservation(
     reservation_details = reservation_crud.get_with_details(db, reservation_id=reservation.id)
     
     return reservation_details
-
-
 @router.patch("/reservations/{reservation_id}/status", response_model=ReservationWithDetails)
 def update_reservation_status(
     *,
@@ -226,7 +209,6 @@ def update_reservation_status(
     """
     Update reservation status (Staff+ only).
     """
-    from schemas.order import ReservationUpdate
     
     reservation = reservation_crud.get(db, id=reservation_id)
     if not reservation:
@@ -243,8 +225,6 @@ def update_reservation_status(
     reservation_details = reservation_crud.get_with_details(db, reservation_id=reservation.id)
     
     return reservation_details
-
-
 # Order endpoints
 @router.get("/orders/", response_model=PaginatedOrderResponse)
 def read_orders(
@@ -278,8 +258,6 @@ def read_orders(
         skip=skip,
         limit=limit
     )
-
-
 @router.get("/orders/my", response_model=List[Order])
 def read_my_orders(
     db: Session = Depends(get_db),
@@ -295,8 +273,6 @@ def read_my_orders(
         customer_id=current_user.id
     )
     return orders
-
-
 @router.post("/orders/", response_model=Order)
 def create_order(
     *,
@@ -319,7 +295,7 @@ def create_order(
         print(f"🔍 Debug: Order items: {order_in.order_items}")
         
         # Validate that all menu items exist and are available
-        from crud.menu import menu_item as menu_item_crud
+        from app.crud.menu import menu_item as menu_item_crud
         for item in order_in.order_items:
             # Handle both dict and object formats
             menu_item_id = item.get('menu_item_id') if isinstance(item, dict) else item.menu_item_id
@@ -356,8 +332,6 @@ def create_order(
             status_code=500,
             detail=f"Internal server error: {error_msg}"
         )
-
-
 @router.get("/orders/{order_id}", response_model=Order)
 def read_order(
     *,
@@ -373,14 +347,12 @@ def read_order(
         raise HTTPException(status_code=404, detail="Order not found")
     
     # Users can only see their own orders unless they are staff+
-    from models.user import UserRole
+    from app.models.user import UserRole
     if (current_user.role == UserRole.customer and 
         order.customer_id != current_user.id):
         raise HTTPException(status_code=403, detail="Not enough permissions")
     
     return order
-
-
 @router.get("/orders/{order_id}/details")
 def read_order_details(
     *,
@@ -396,8 +368,6 @@ def read_order_details(
         raise HTTPException(status_code=404, detail="Order not found")
     
     return order_details
-
-
 @router.patch("/orders/{order_id}/status", response_model=Order)
 def update_order_status(
     *,
@@ -409,7 +379,6 @@ def update_order_status(
     """
     Update order status (Staff+ only).
     """
-    from schemas.order import OrderUpdate
     
     order = order_crud.get(db, id=order_id)
     if not order:
@@ -422,8 +391,6 @@ def update_order_status(
     order_update = OrderUpdate(status=status)
     order = order_crud.update(db, db_obj=order, obj_in=order_update)
     return order
-
-
 @router.put("/orders/{order_id}", response_model=Order)
 def update_order(
     *,
@@ -441,8 +408,6 @@ def update_order(
     
     order = order_crud.update(db, db_obj=order, obj_in=order_in)
     return order
-
-
 @router.get("/summary/daily", response_model=OrderSummary)
 def get_daily_summary(
     *,
@@ -455,8 +420,6 @@ def get_daily_summary(
     """
     summary = order_crud.get_daily_summary(db, target_date=target_date)
     return summary
-
-
 @router.get("/dashboard/stats", response_model=DashboardStats)
 def get_dashboard_stats(
     *,
@@ -468,8 +431,6 @@ def get_dashboard_stats(
     """
     stats = order_crud.get_dashboard_stats(db)
     return stats
-
-
 @router.get("/analytics/bestsellers")
 def get_bestseller_dishes(
     *,
@@ -481,8 +442,6 @@ def get_bestseller_dishes(
     """
     Get bestseller dishes based on order quantity in the specified period.
     """
-    from models.order import OrderItem, Order as OrderModel
-    from models.menu import MenuItem
     
     # Calculate date range
     end_date = datetime.now()
@@ -517,8 +476,6 @@ def get_bestseller_dishes(
         })
     
     return result
-
-
 @router.post("/orders/{order_id}/items/")
 def add_item_to_order(
     *,
@@ -531,8 +488,8 @@ def add_item_to_order(
     Add item to existing order.
     """
     try:
-        from models.order import OrderItem
-        from crud.menu import menu_item as menu_item_crud
+    
+    
         
         print(f"🔍 Debug: Add item to order - order_id={order_id}")
         print(f"🔍 Debug: Item data: {item_data}")
@@ -547,7 +504,7 @@ def add_item_to_order(
         print(f"✅ Order found: {order.order_number}, customer_id={order.customer_id}")
         
         # Users can only modify their own orders unless they are staff+
-        from models.user import UserRole
+    
         if (current_user and current_user.role == UserRole.customer and 
             order.customer_id != current_user.id):
             print(f"❌ Permission denied: user {current_user.id} cannot modify order of customer {order.customer_id}")

@@ -33,7 +33,7 @@ docker-compose logs -f
 ```
 
 **Truy cập ứng dụng:**
-- 🌐 Frontend: http://103.56.160.107:3000 (hoặc localhost:3000)
+- 🌐 Frontend: http://103.56.160.ad107:3000 (hoặc localhost:3000)
 - 📚 API Docs: http://103.56.160.107:8000/docs (hoặc localhost:8000/docs)
 - 🤖 Rasa API: http://103.56.160.107:5005 (hoặc localhost:5005)
 - 🎯 Nginx Proxy: http://103.56.160.107 (hoặc localhost:80)

@@ -172,6 +172,174 @@ def create_users(db: Session):
     logger.info(f"✅ Đã tạo {len(users)} người dùng")
     return users
 
+def create_reservations(db: Session, users, tables):
+    """Tạo đặt bàn mẫu"""
+    from datetime import datetime, timedelta
+    
+    reservations = []
+    now = datetime.now()
+    
+    reservations_data = [
+        {
+            "customer_id": users[3].id,  # Nguyễn Văn A
+            "table_id": tables[0].id,  # Bàn 1
+            "reservation_date": now + timedelta(days=1, hours=12),  # Ngày mai 12h
+            "party_size": 4,
+            "status": ReservationStatus.confirmed,
+            "special_requests": "Muốn chỗ ngồi gần cửa sổ"
+        },
+        {
+            "customer_id": users[3].id,
+            "table_id": tables[4].id,  # Bàn 5
+            "reservation_date": now + timedelta(days=2, hours=19),  # Ngày kia 19h
+            "party_size": 6,
+            "status": ReservationStatus.pending,
+            "special_requests": "Chuẩn bị ô tô tìm vợ"
+        },
+        {
+            "customer_id": users[2].id,  # Customer user
+            "table_id": tables[10].id,  # Bàn VIP
+            "reservation_date": now + timedelta(days=3, hours=18),
+            "party_size": 8,
+            "status": ReservationStatus.confirmed,
+            "special_requests": "Tiệc sinh nhật, cần trang trí"
+        },
+        {
+            "customer_id": users[3].id,
+            "table_id": tables[1].id,  # Bàn 2
+            "reservation_date": now + timedelta(hours=6),  # Hôm nay 6h tối
+            "party_size": 2,
+            "status": ReservationStatus.confirmed,
+            "special_requests": None
+        },
+    ]
+    
+    for res_data in reservations_data:
+        reservation = Reservation(**res_data)
+        db.add(reservation)
+        reservations.append(reservation)
+    
+    db.commit()
+    logger.info(f"✅ Đã tạo {len(reservations)} đặt bàn")
+    return reservations
+
+def create_orders(db: Session, users, tables, menu_items):
+    """Tạo đơn hàng và chi tiết đơn hàng"""
+    from datetime import datetime, timedelta
+    import random
+    
+    orders = []
+    order_count = 1
+    
+    # Tạo các đơn hàng mẫu
+    orders_data = [
+        {
+            "customer_id": users[3].id,  # Nguyễn Văn A
+            "table_id": tables[0].id,
+            "status": OrderStatus.completed,
+            "payment_status": PaymentStatus.paid,
+            "items": [
+                {"menu_item_id": menu_items[0].id, "quantity": 2},  # 2x Phở Bò Tái
+                {"menu_item_id": menu_items[6].id, "quantity": 2},  # 2x Cà phê sữa đá
+            ]
+        },
+        {
+            "customer_id": users[3].id,
+            "table_id": tables[1].id,
+            "status": OrderStatus.served,
+            "payment_status": PaymentStatus.paid,
+            "items": [
+                {"menu_item_id": menu_items[1].id, "quantity": 1},  # 1x Bún Bò Huế
+                {"menu_item_id": menu_items[4].id, "quantity": 1},  # 1x Gỏi cuốn
+                {"menu_item_id": menu_items[9].id, "quantity": 1},  # 1x Chè ba màu
+            ]
+        },
+        {
+            "customer_id": users[2].id,  # Customer user
+            "table_id": tables[2].id,
+            "status": OrderStatus.ready,
+            "payment_status": PaymentStatus.pending,
+            "items": [
+                {"menu_item_id": menu_items[2].id, "quantity": 2},  # 2x Cơm tấm sườn nướng
+                {"menu_item_id": menu_items[7].id, "quantity": 2},  # 2x Sinh tố xoài
+            ]
+        },
+        {
+            "customer_id": None,  # Walk-in customer
+            "table_id": tables[3].id,
+            "status": OrderStatus.preparing,
+            "payment_status": PaymentStatus.pending,
+            "items": [
+                {"menu_item_id": menu_items[3].id, "quantity": 3},  # 3x Bánh mì thịt nướng
+                {"menu_item_id": menu_items[5].id, "quantity": 2},  # 2x Nem rán
+            ]
+        },
+        {
+            "customer_id": users[3].id,
+            "table_id": tables[4].id,
+            "status": OrderStatus.pending,
+            "payment_status": PaymentStatus.pending,
+            "items": [
+                {"menu_item_id": menu_items[8].id, "quantity": 1},  # 1x Phở chay
+                {"menu_item_id": menu_items[0].id, "quantity": 1},  # 1x Phở Bò Tái
+                {"menu_item_id": menu_items[6].id, "quantity": 3},  # 3x Cà phê sữa đá
+            ]
+        }
+    ]
+    
+    for order_data in orders_data:
+        items_data = order_data.pop("items")
+        
+        # Tính tổng tiền
+        total_amount = 0
+        tax_amount = 0
+        
+        # Tạo order
+        order = Order(
+            order_number=f"ORD-{datetime.now().strftime('%Y%m%d')}-{order_count:04d}",
+            customer_id=order_data["customer_id"],
+            table_id=order_data["table_id"],
+            status=order_data["status"],
+            payment_status=order_data["payment_status"],
+            total_amount=0,  # Sẽ cập nhật sau
+            tax_amount=0,
+            discount_amount=0,
+            notes="Dữ liệu mẫu từ seed"
+        )
+        
+        db.add(order)
+        db.flush()  # Lấy ID của order vừa tạo
+        
+        # Tạo order items
+        for item_data in items_data:
+            menu_item = [m for m in menu_items if m.id == item_data["menu_item_id"]][0]
+            quantity = item_data["quantity"]
+            unit_price = menu_item.price
+            item_total = unit_price * quantity
+            total_amount += item_total
+            
+            order_item = OrderItem(
+                order_id=order.id,
+                menu_item_id=item_data["menu_item_id"],
+                quantity=quantity,
+                unit_price=unit_price,
+                total_price=item_total,
+                special_instructions=None
+            )
+            db.add(order_item)
+        
+        # Cập nhật tổng tiền cho order (tính thuế 10%)
+        tax_amount = total_amount * 0.1
+        order.total_amount = total_amount + tax_amount
+        order.tax_amount = tax_amount
+        
+        orders.append(order)
+        order_count += 1
+    
+    db.commit()
+    logger.info(f"✅ Đã tạo {len(orders)} đơn hàng với chi tiết")
+    return orders
+
 def seed_database(db: Session):
     """Seed toàn bộ database"""
     logger.info("🌱 Bắt đầu seed database...")
@@ -187,5 +355,11 @@ def seed_database(db: Session):
     
     # 4. Tạo người dùng
     users = create_users(db)
+    
+    # 5. Tạo đặt bàn (Reservations)
+    reservations = create_reservations(db, users, tables)
+    
+    # 6. Tạo đơn hàng (Orders) và chi tiết đơn hàng (OrderItems)
+    orders = create_orders(db, users, tables, menu_items)
     
     logger.info("🎉 Seed database hoàn thành!")
