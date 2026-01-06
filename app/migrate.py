@@ -49,6 +49,17 @@ def check_database_connection():
         logger.error(f"❌ Lỗi kết nối database: {e}")
         return False
 
+def drop_database_tables():
+    """Xóa tất cả tables để reset database"""
+    try:
+        logger.info("🧹 Xóa dữ liệu cũ...")
+        Base.metadata.drop_all(bind=engine)
+        logger.info("✅ Dữ liệu cũ đã được xóa")
+        return True
+    except Exception as e:
+        logger.warning(f"⚠️ Không thể xóa dữ liệu cũ (có thể là lần chạy đầu): {e}")
+        return True  # Không báo lỗi nếu tables không tồn tại
+
 def create_database_tables():
     """Tạo tất cả tables từ SQLAlchemy models"""
     try:
@@ -79,6 +90,9 @@ def main():
     if not check_database_connection():
         logger.error("❌ Migration thất bại - không thể kết nối database")
         sys.exit(1)
+    
+    # Drop old tables first
+    drop_database_tables()
     
     # Create tables and seed data
     if not create_database_tables():
