@@ -29,7 +29,7 @@ class CRUDReservation:
         if status:
             query = query.filter(Reservation.status == status)
         if date_filter:
-            query = query.filter(func.date(Reservation.reservation_date) == date_filter)
+            query = query.filter(func.date(Reservation.reservation_datetime) == date_filter)
         return query.offset(skip).limit(limit).all()
     def get_by_date_range(
         self, 
@@ -40,8 +40,8 @@ class CRUDReservation:
     ) -> List[Reservation]:
         query = db.query(Reservation).filter(
             and_(
-                Reservation.reservation_date >= start_date,
-                Reservation.reservation_date <= end_date,
+                Reservation.reservation_datetime >= start_date,
+                Reservation.reservation_datetime <= end_date,
                 Reservation.status.in_([ReservationStatus.confirmed, ReservationStatus.pending])
             )
         )
@@ -52,7 +52,7 @@ class CRUDReservation:
         db_obj = Reservation(
             customer_id=obj_in.customer_id,
             table_id=obj_in.table_id,
-            reservation_date=obj_in.reservation_date,
+            reservation_datetime=obj_in.reservation_datetime,
             party_size=obj_in.party_size,
             special_requests=obj_in.special_requests,
             notes=obj_in.notes,
@@ -116,7 +116,7 @@ class CRUDReservation:
         if status:
             query = query.filter(Reservation.status == status)
         if date_filter:
-            query = query.filter(func.date(Reservation.reservation_date) == date_filter)
+            query = query.filter(func.date(Reservation.reservation_datetime) == date_filter)
         results = query.order_by(Reservation.created_at.desc()).offset(skip).limit(limit).all()
         # Convert to dict format
         reservations_with_details = []
@@ -125,7 +125,7 @@ class CRUDReservation:
                 "id": reservation.id,
                 "customer_id": reservation.customer_id,
                 "table_id": reservation.table_id,
-                "reservation_date": reservation.reservation_date,
+                "reservation_datetime": reservation.reservation_datetime,
                 "party_size": reservation.party_size,
                 "status": reservation.status,
                 "special_requests": reservation.special_requests,
@@ -157,7 +157,7 @@ class CRUDReservation:
         if status:
             query = query.filter(Reservation.status == status)
         if date_filter:
-            query = query.filter(func.date(Reservation.reservation_date) == date_filter)
+            query = query.filter(func.date(Reservation.reservation_datetime) == date_filter)
         return query.count()
     def get_my_reservations_with_details(
         self, 
@@ -187,7 +187,7 @@ class CRUDReservation:
                 "id": reservation.id,
                 "customer_id": reservation.customer_id,
                 "table_id": reservation.table_id,
-                "reservation_date": reservation.reservation_date,
+                "reservation_datetime": reservation.reservation_datetime,
                 "party_size": reservation.party_size,
                 "status": reservation.status,
                 "special_requests": reservation.special_requests,
@@ -226,7 +226,7 @@ class CRUDReservation:
             "id": reservation.id,
             "customer_id": reservation.customer_id,
             "table_id": reservation.table_id,
-            "reservation_date": reservation.reservation_date,
+            "reservation_datetime": reservation.reservation_datetime,
             "party_size": reservation.party_size,
             "status": reservation.status,
             "special_requests": reservation.special_requests,
@@ -535,7 +535,7 @@ class CRUDOrder:
         # Recent reservations (last 5)
         recent_reservations = db.query(
             Reservation.id,
-            Reservation.reservation_date,
+            Reservation.reservation_datetimetime,
             Reservation.party_size,
             Reservation.status,
             User.full_name.label('customer_name'),
@@ -548,7 +548,7 @@ class CRUDOrder:
         for res_data in recent_reservations:
             recent_reservations_data.append({
                 'id': res_data.id,
-                'reservation_date': res_data.reservation_date.isoformat(),
+                'reservation_datetime': res_data.reservation_datetimetime.isoformat(),
                 'party_size': res_data.party_size,
                 'status': res_data.status,
                 'customer_name': res_data.customer_name,
