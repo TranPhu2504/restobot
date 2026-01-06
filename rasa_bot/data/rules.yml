@@ -155,17 +155,17 @@ rules:
   - action: utter_deny_request
 
 # ===== FALLBACK RULES =====
-- rule: Fallback rule
-  steps:
-  - intent: nlu_fallback
-  - action: utter_default
-
 - rule: Ask rephrase on low confidence
   condition:
   - active_loop: null
   steps:
   - intent: nlu_fallback
   - action: utter_ask_rephrase
+
+- rule: Fallback rule
+  steps:
+  - intent: nlu_fallback
+  - action: utter_default
 
 # ===== PAYMENT RULES =====
 - rule: Initiate payment process
