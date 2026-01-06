@@ -52,7 +52,9 @@ try:
         ActionCancelOrder,
         ActionRemoveFromOrder,
         ActionConfirmCancelOrder,
-        ActionDenyCancellation
+        ActionDenyCancellation,
+        ActionModifyOrder,
+        ActionShowCurrentOrder
     )
 
     from modules.info_actions import (
@@ -128,6 +130,8 @@ __all__ = [
     'ActionRemoveFromOrder',
     'ActionConfirmCancelOrder',
     'ActionDenyCancellation',
+    'ActionModifyOrder',
+    'ActionShowCurrentOrder',
     'ActionShowOpeningHours',
     'ActionShowAddress',
     'ActionShowContact',

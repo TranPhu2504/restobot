@@ -806,3 +806,56 @@ class ActionDenyCancellation(Action):
             SlotSet("pending_cancellation_reservation_id", None),
             SlotSet("pending_cancellation_order_id", None)
         ]
+
+
+class ActionModifyOrder(Action):
+    """Action để sửa đơn hàng"""
+
+    def name(self) -> Text:
+        return "action_modify_order"
+
+    def run(self, dispatcher: CollectingDispatcher,
+            tracker: Tracker,
+            domain: Dict[Text, Any]) -> List[Dict[Text, Any]]:
+        
+        # Lấy thông tin user đã xác thực
+        authenticated_user = get_authenticated_user_from_tracker(tracker)
+        
+        if not authenticated_user:
+            dispatcher.utter_message(text="🔐 Bạn cần đăng nhập để sửa đơn hàng.")
+            return []
+            
+        # Lấy current order ID
+        current_order_id = tracker.get_slot("current_order_id")
+        
+        if not current_order_id:
+            dispatcher.utter_message(text="❌ Không tìm thấy đơn hàng nào để sửa. Hãy gọi món trước.")
+            return []
+            
+        dispatcher.utter_message(text="""🛠️ **SỬA ĐƠN HÀNG**
+
+Bạn muốn sửa gì trong đơn hàng?
+
+📝 **Các lựa chọn:**
+• "Bỏ [tên món]" - Xóa món khỏi đơn
+• "Thêm [tên món]" - Thêm món mới
+• "Sửa số lượng [món] thành [số]" - Đổi số lượng
+• "Xem đơn hàng" - Kiểm tra lại đơn hiện tại
+
+💡 Hãy cho tôi biết cụ thể bạn muốn sửa gì nhé!""")
+        
+        return [SlotSet("conversation_context", "modify_order")]
+
+
+class ActionShowCurrentOrder(Action):
+    """Alias for ActionViewCurrentOrder"""
+
+    def name(self) -> Text:
+        return "action_show_current_order"
+
+    def run(self, dispatcher: CollectingDispatcher,
+            tracker: Tracker,
+            domain: Dict[Text, Any]) -> List[Dict[Text, Any]]:
+        # Delegate to ActionViewCurrentOrder
+        view_action = ActionViewCurrentOrder()
+        return view_action.run(dispatcher, tracker, domain)
