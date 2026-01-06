@@ -174,7 +174,6 @@ def create_users(db: Session):
 
 def create_reservations(db: Session, users, tables):
     """Tạo đặt bàn mẫu"""
-    from datetime import datetime, timedelta
     
     reservations = []
     now = datetime.now()
@@ -194,7 +193,7 @@ def create_reservations(db: Session, users, tables):
             "reservation_datetime": now + timedelta(days=2, hours=19),  # Ngày kia 19h
             "party_size": 6,
             "status": ReservationStatus.pending,
-            "special_requests": "Chuẩn bị ô tô tìm vợ"
+            "special_requests": "Cần bàn rộng, có ghế cao cho trẻ em"
         },
         {
             "customer_id": users[2].id,  # Customer user
@@ -225,8 +224,6 @@ def create_reservations(db: Session, users, tables):
 
 def create_orders(db: Session, users, tables, menu_items):
     """Tạo đơn hàng và chi tiết đơn hàng"""
-    from datetime import datetime, timedelta
-    import random
     
     orders = []
     order_count = 1
@@ -310,9 +307,12 @@ def create_orders(db: Session, users, tables, menu_items):
         db.add(order)
         db.flush()  # Lấy ID của order vừa tạo
         
+        # Tạo menu item lookup dictionary for performance
+        menu_item_dict = {item.id: item for item in menu_items}
+        
         # Tạo order items
         for item_data in items_data:
-            menu_item = [m for m in menu_items if m.id == item_data["menu_item_id"]][0]
+            menu_item = menu_item_dict[item_data["menu_item_id"]]
             quantity = item_data["quantity"]
             unit_price = menu_item.price
             item_total = unit_price * quantity
