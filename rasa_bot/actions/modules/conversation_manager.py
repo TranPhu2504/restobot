@@ -56,6 +56,8 @@ class ActionConversationManager(Action):
                 intent_name, latest_message
             )
         
+        # Fallback - không tìm thấy context phù hợp
+        dispatcher.utter_message(text="🤔 Tôi chưa hiểu rõ ý bạn. Bạn có thể nói cụ thể hơn được không?")
         return []
 
     def _detect_contextual_references(self, message: str) -> List[str]:
@@ -392,5 +394,33 @@ class ActionSmartSuggestion(Action):
         if suggestions:
             suggestion_text = "💡 **Gợi ý cho bạn:**\n" + "\n".join(suggestions)
             dispatcher.utter_message(text=suggestion_text)
+        
+        return []
+
+    def _handle_context_based_queries(self, dispatcher: CollectingDispatcher,
+                                     tracker: Tracker, conversation_context: str,
+                                     intent_name: str, message: str) -> List[Dict[Text, Any]]:
+        """Xử lý câu hỏi dựa vào context của cuộc trò chuyện"""
+        
+        if conversation_context == "viewing_menu":
+            if intent_name == 'order_food' or 'gọi' in message:
+                return [FollowupAction("action_add_to_order")]
+            elif intent_name == 'ask_dish_price' or 'giá' in message:
+                return [FollowupAction("action_ask_dish_price")]
+                
+        elif conversation_context == "ordering_process":
+            if intent_name == 'view_current_order':
+                return [FollowupAction("action_view_current_order")]
+            elif intent_name == 'confirm_order':
+                return [FollowupAction("action_confirm_order")]
+                
+        elif conversation_context == "booking_process":
+            if intent_name == 'confirm_booking':
+                return [FollowupAction("action_confirm_booking")]
+            elif intent_name == 'modify_booking':
+                return [FollowupAction("action_modify_booking")]
+        
+        # Default fallback
+        return [FollowupAction("action_smart_suggestion")]
         
         return []

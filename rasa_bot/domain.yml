@@ -6,6 +6,7 @@ intents:
   - affirm
   - deny
   - bot_challenge
+  - nlu_fallback
   
   # Đặt bàn
   - book_table
@@ -184,6 +185,21 @@ slots:
     - type: from_entity
       entity: quantity
 
+  # Enhanced order confirmation slots
+  pending_order_item:
+    type: any
+    initial_value: null
+    influence_conversation: true
+    mappings:
+    - type: custom
+    
+  suggested_dishes:
+    type: list
+    initial_value: []
+    influence_conversation: true
+    mappings:
+    - type: custom
+
   # Advanced conversation management slots
   last_mentioned_dishes:
     type: list
@@ -307,6 +323,13 @@ responses:
   - text: "🙏 Xin lỗi, bạn có thể nói lại theo cách khác được không? Tôi muốn hiểu rõ để hỗ trợ bạn tốt nhất."
   - text: "😅 Tôi có thể hiểu nhầm ý bạn. Bạn có thể diễn đạt rõ hơn một chút được không?"
 
+  utter_deny_request:
+  - text: "Được rồi, tôi hiểu. Bạn có cần tôi hỗ trợ gì khác không?"
+  - text: "Không sao cả. Bạn cần tôi giúp việc gì khác không?"
+
+  utter_error:
+  - text: "Xin lỗi, có lỗi xảy ra. Vui lòng thử lại sau hoặc liên hệ bộ phận hỗ trợ."
+
 actions:
   # Menu actions
   - action_show_menu
@@ -357,6 +380,11 @@ actions:
 
   # Utility actions
   - action_deny_request
+  - action_handle_error
+  
+  # Enhanced order confirmation actions
+  - action_confirm_order_item
+  - action_select_dish_by_number
 
 session_config:
   session_expiration_time: 60

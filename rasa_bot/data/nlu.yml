@@ -144,7 +144,7 @@ nlu:
     - book table for [3](number_of_people) people
     - đặt bàn [tối nay](date) [19:30](time)
     - tôi muốn đặt bàn cho [gia đình](number_of_people)
-    - đặt bàn [4](number_of_people) người ngày [20/10/2025](date) lúc [19:00](time)
+    - đặt bàn [4](number_of_people) người ngày [07/01/2025](date) lúc [19:00](time)
     - đặt chỗ
     - tôi muốn đặt chỗ
     - đặt chỗ ngồi
@@ -171,6 +171,10 @@ nlu:
     - đặt chỗ ngồi [hôm nay](date)
     - reserve chỗ cho [gia đình](number_of_people)
     - tôi muốn đặt chỗ ngồi [tối mai](date)
+    - đặt bàn [8](number_of_people) người ngày [08/01/2025](date)
+    - book table [10](number_of_people) people [tomorrow](date) [20:00](time)
+    - đặt chỗ ngồi [6](number_of_people) người [cuối tuần](date)
+    - tôi muốn đặt bàn [VIP](table_type) cho [4](number_of_people) người
 
 - intent: confirm_booking
   examples: |
@@ -475,3 +479,70 @@ nlu:
     - bạn là con người không
     - bạn là bot
     - who are you
+
+# ===== ENTITIES & SYNONYMS =====
+entities:
+  - number_of_people
+  - date
+  - time
+  - dish_name
+  - quantity
+  - table_type
+  - location
+
+synonyms:
+  - "2":
+    - "hai"
+    - "2 người"
+    - "đôi"
+    - "couple"
+    
+  - "4":
+    - "bốn"
+    - "4 người"
+    - "gia đình"
+    - "family"
+    
+  - "6":
+    - "sáu"
+    - "6 người"
+    - "nhóm"
+    - "group"
+    
+  - "hôm nay":
+    - "today"
+    - "ngày hôm nay"
+    - "trong ngày"
+    
+  - "ngày mai":
+    - "tomorrow"
+    - "tối mai"
+    - "mai"
+    
+  - "tối nay":
+    - "tonight"
+    - "tối hôm nay"
+    - "chiều nay"
+    
+  - "19:00":
+    - "7 giờ tối"
+    - "7pm"
+    - "bảy giờ tối"
+    - "19h"
+    
+  - "20:00":
+    - "8 giờ tối"
+    - "8pm"
+    - "tám giờ tối"
+    - "20h"
+    
+  - "VIP":
+    - "vip"
+    - "cao cấp"
+    - "đặc biệt"
+    - "premium"
+    
+  - "thường":
+    - "bình thường"
+    - "regular"
+    - "standard"

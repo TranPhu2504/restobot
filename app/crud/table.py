@@ -1,5 +1,7 @@
 from sqlalchemy.orm import Session
+from sqlalchemy import and_, or_
 from typing import Optional, List
+from datetime import datetime, timedelta
 from app.models.table import Table, TableStatus
 from app.schemas.table import TableCreate, TableUpdate
 
@@ -52,15 +54,89 @@ class CRUDTable:
         return query.count()
 
     def get_available_tables(
-        self, db: Session, min_capacity: Optional[int] = None
+        self, db: Session, min_capacity: Optional[int] = None,
+        reservation_datetime: Optional[datetime] = None,
+        duration_hours: int = 2
     ) -> List[Table]:
+        """Get available tables, optionally checking for reservation conflicts"""
         query = db.query(Table).filter(
             Table.status == TableStatus.available,
             Table.is_active == True
         )
         if min_capacity:
             query = query.filter(Table.capacity >= min_capacity)
+            
+        # If checking for specific reservation time, exclude tables with conflicts
+        if reservation_datetime:
+            from app.models.order import Reservation, ReservationStatus
+            
+            # Calculate time window (reservation + duration)
+            end_time = reservation_datetime + timedelta(hours=duration_hours)
+            
+            # Find tables with conflicting reservations
+            conflicting_reservations = db.query(Reservation.table_id).filter(
+                and_(
+                    Reservation.status.in_([ReservationStatus.pending, ReservationStatus.confirmed]),
+                    or_(
+                        # New reservation starts during existing reservation
+                        and_(
+                            Reservation.reservation_datetime <= reservation_datetime,
+                            Reservation.estimated_end_time >= reservation_datetime
+                        ),
+                        # New reservation ends during existing reservation
+                        and_(
+                            Reservation.reservation_datetime <= end_time,
+                            Reservation.estimated_end_time >= end_time
+                        ),
+                        # New reservation completely covers existing reservation
+                        and_(
+                            Reservation.reservation_datetime >= reservation_datetime,
+                            Reservation.estimated_end_time <= end_time
+                        )
+                    )
+                )
+            ).subquery()
+            
+            # Exclude tables with conflicts
+            query = query.filter(~Table.id.in_(conflicting_reservations))
+            
         return query.all()
+
+    def is_table_available_at_time(
+        self, db: Session, table_id: int, 
+        reservation_datetime: datetime, duration_hours: int = 2
+    ) -> bool:
+        """Check if specific table is available at given time"""
+        table = self.get(db, table_id)
+        if not table or table.status != TableStatus.available or not table.is_active:
+            return False
+            
+        from app.models.order import Reservation, ReservationStatus
+        
+        end_time = reservation_datetime + timedelta(hours=duration_hours)
+        
+        conflicting_count = db.query(Reservation).filter(
+            and_(
+                Reservation.table_id == table_id,
+                Reservation.status.in_([ReservationStatus.pending, ReservationStatus.confirmed]),
+                or_(
+                    and_(
+                        Reservation.reservation_datetime <= reservation_datetime,
+                        Reservation.estimated_end_time >= reservation_datetime
+                    ),
+                    and_(
+                        Reservation.reservation_datetime <= end_time,
+                        Reservation.estimated_end_time >= end_time
+                    ),
+                    and_(
+                        Reservation.reservation_datetime >= reservation_datetime,
+                        Reservation.estimated_end_time <= end_time
+                    )
+                )
+            )
+        ).count()
+        
+        return conflicting_count == 0
 
     def get_by_status(self, db: Session, status: TableStatus) -> List[Table]:
         return db.query(Table).filter(

@@ -18,6 +18,8 @@ import {
   CircularProgress,
   Alert,
   AlertTitle,
+  Fab,
+  Badge,
 } from '@mui/material';
 import {
   Send as SendIcon,
@@ -30,10 +32,14 @@ import {
   ShoppingCart as CartIcon,
   Circle as StatusIcon,
   Login as LoginIcon,
+  BookOnline as BookIcon,
+  ViewList as StatusViewIcon,
 } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
 import { chatService } from '../../services/chatService';
 import { useAuth } from '../../hooks/useAuth';
+import TableBooking from '../customer/TableBooking';
+import TableStatusView from '../customer/TableStatusView';
 
 interface DishItem {
   name: string;
@@ -60,7 +66,7 @@ interface ConnectionStatus {
 }
 
 const quickButtons = [
-  { icon: <TableIcon />, text: 'Đặt bàn 4 người', action: 'Đặt bàn 4 người ngày 17/10/2025 lúc 19:00' },
+  { icon: <TableIcon />, text: 'Đặt bàn 4 người', action: 'Đặt bàn 4 người ngày 07/01/2025 lúc 19:00' },
   { icon: <MenuIcon />, text: 'Xem thực đơn', action: 'Cho tôi xem thực đơn' },
   { icon: <CartIcon />, text: 'Gọi món', action: 'Tôi muốn gọi món ăn' },
   { icon: <InfoIcon />, text: 'Thông tin nhà hàng', action: 'Cho tôi biết thông tin về nhà hàng' },
@@ -141,6 +147,13 @@ const ChatInterface: React.FC = () => {
     fastApi: false,
     message: '🔗 Đang kiểm tra kết nối...'
   });
+  const [bookingDialogOpen, setBookingDialogOpen] = useState(false);
+  const [statusViewOpen, setStatusViewOpen] = useState(false);
+  const [bookingInitialData, setBookingInitialData] = useState<{
+    guests?: number;
+    date?: string;
+    time?: string;
+  }>({});
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   // Shuffle suggestions on component mount
@@ -169,7 +182,7 @@ Tôi có thể giúp bạn:
 • Gọi món ăn và quản lý đơn hàng
 • Thông tin nhà hàng (địa chỉ, giờ mở cửa, liên hệ)
 
-Ví dụ đặt bàn: "Đặt bàn 4 người ngày 17/10/2025 lúc 19:00"
+Ví dụ đặt bàn: "Đặt bàn 4 người ngày 07/01/2025 lúc 19:00"
 
 Bạn có thể sử dụng các nút bên dưới hoặc nhập trực tiếp!`,
       sender: 'bot',
@@ -194,10 +207,54 @@ Bạn có thể sử dụng các nút bên dưới hoặc nhập trực tiếp!`
     }
   };
 
+  const parseBookingFromMessage = (messageText: string) => {
+    // Parse booking information from chat message
+    // Example: "Đặt bàn 4 người ngày 07/01/2025 lúc 19:00"
+    const bookingRegex = /đặt\s+bàn\s+(\d+)\s+người.*?(?:ngày\s+(\d{1,2}\/\d{1,2}\/\d{4}))?.*?(?:lúc\s+(\d{1,2}:\d{2}))?/i;
+    const match = messageText.match(bookingRegex);
+    
+    if (match) {
+      const guests = parseInt(match[1]);
+      let date = match[2];
+      const time = match[3];
+      
+      // Convert date format from dd/mm/yyyy to yyyy-mm-dd
+      if (date) {
+        const [day, month, year] = date.split('/');
+        date = `${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}`;
+      }
+      
+      return { guests, date, time };
+    }
+    return null;
+  };
+
+  const handleTableBooking = (tableId?: number) => {
+    if (!user) {
+      const loginMessage: Message = {
+        id: Date.now().toString(),
+        text: '🔒 Bạn cần đăng nhập để đặt bàn!\n\nVui lòng đăng nhập trước khi tiếp tục.',
+        sender: 'bot',
+        timestamp: new Date(),
+      };
+      setMessages(prev => [...prev, loginMessage]);
+      return;
+    }
+
+    setBookingDialogOpen(true);
+  };
+
+  const handleStatusView = () => {
+    setStatusViewOpen(true);
+  };
+
   const sendMessage = async (text?: string) => {
     const messageText = text || inputValue.trim();
     if (!messageText) return;
 
+    // Check for booking request patterns
+    const bookingInfo = parseBookingFromMessage(messageText);
+    
     // Kiểm tra đăng nhập trước khi gửi
     if (!user) {
       const loginMessage: Message = {
@@ -220,6 +277,26 @@ Bạn có thể sử dụng các nút bên dưới hoặc nhập trực tiếp!`
     setMessages(prev => [...prev, userMessage]);
     setInputValue('');
     setIsTyping(true);
+
+    // If this is a booking request, set initial data and suggest opening booking dialog
+    if (bookingInfo && (bookingInfo.guests || bookingInfo.date || bookingInfo.time)) {
+      setBookingInitialData(bookingInfo);
+      
+      const bookingResponseMessage: Message = {
+        id: (Date.now() + 1).toString(),
+        text: `Tôi hiểu bạn muốn đặt bàn${bookingInfo.guests ? ` cho ${bookingInfo.guests} người` : ''}${bookingInfo.date ? ` vào ngày ${bookingInfo.date}` : ''}${bookingInfo.time ? ` lúc ${bookingInfo.time}` : ''}.\n\nTôi sẽ mở giao diện đặt bàn để bạn có thể chọn bàn cụ thể và hoàn tất thông tin.`,
+        sender: 'bot',
+        timestamp: new Date(),
+      };
+      setMessages(prev => [...prev, bookingResponseMessage]);
+      
+      // Open booking dialog after a short delay
+      setTimeout(() => {
+        setIsTyping(false);
+        setBookingDialogOpen(true);
+      }, 1000);
+      return;
+    }
 
     try {
       console.log('Sending message:', messageText);
@@ -762,6 +839,93 @@ Bạn có thể sử dụng các nút bên dưới hoặc nhập trực tiếp!`
           </IconButton>
         </Paper>
       </Box>
+
+      {/* Floating Action Buttons */}
+      <Box sx={{ position: 'fixed', bottom: 80, right: 16, display: 'flex', flexDirection: 'column', gap: 1 }}>
+        <Fab
+          color="primary"
+          aria-label="book table"
+          onClick={handleTableBooking}
+          sx={{ 
+            '&:hover': { 
+              transform: 'scale(1.1)',
+              boxShadow: 6 
+            },
+            transition: 'all 0.2s'
+          }}
+        >
+          <BookIcon />
+        </Fab>
+        <Fab
+          color="secondary"
+          aria-label="table status"
+          onClick={handleStatusView}
+          size="small"
+          sx={{ 
+            '&:hover': { 
+              transform: 'scale(1.1)',
+              boxShadow: 6 
+            },
+            transition: 'all 0.2s'
+          }}
+        >
+          <StatusViewIcon />
+        </Fab>
+      </Box>
+
+      {/* Table Booking Dialog */}
+      <TableBooking
+        open={bookingDialogOpen}
+        onClose={() => {
+          setBookingDialogOpen(false);
+          setBookingInitialData({});
+        }}
+        initialData={bookingInitialData}
+      />
+
+      {/* Table Status Dialog */}
+      {statusViewOpen && (
+        <Paper
+          sx={{
+            position: 'fixed',
+            top: '50%',
+            left: '50%',
+            transform: 'translate(-50%, -50%)',
+            width: '90vw',
+            maxWidth: '1200px',
+            height: '80vh',
+            overflow: 'auto',
+            zIndex: 1300,
+            p: 3,
+            boxShadow: 24,
+          }}
+        >
+          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
+            <Typography variant="h5">Trạng thái bàn</Typography>
+            <Button onClick={() => setStatusViewOpen(false)}>Đóng</Button>
+          </Box>
+          <TableStatusView 
+            onBookTable={handleTableBooking}
+            showBookingButton={true}
+          />
+        </Paper>
+      )}
+
+      {/* Backdrop for status view */}
+      {statusViewOpen && (
+        <Box
+          sx={{
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            bgcolor: 'rgba(0,0,0,0.5)',
+            zIndex: 1200,
+          }}
+          onClick={() => setStatusViewOpen(false)}
+        />
+      )}
     </Box>
   );
 };

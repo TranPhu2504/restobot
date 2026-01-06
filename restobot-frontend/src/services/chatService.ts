@@ -116,21 +116,24 @@ export class ChatService {
         const messages = rasaResponses.map(r => ({
           text: r.text || '',
           image: r.image,
-          dishes: r.custom?.dishes,
+          dishes: r.custom?.dishes || [],
           buttons: r.buttons
-        })).filter(m => m.text || m.image || m.dishes); // Chỉ lấy messages có nội dung
+        })).filter(m => m.text || m.image || (m.dishes && m.dishes.length > 0)); // Chỉ lấy messages có nội dung
         
         if (messages.length > 0) {
           // Tổng hợp tất cả dishes từ các messages
           const allDishes = messages.reduce((acc, m) => {
-            if (m.dishes) {
+            if (m.dishes && m.dishes.length > 0) {
               return [...acc, ...m.dishes];
             }
             return acc;
           }, [] as DishItem[]);
           
+          // Tổng hợp tất cả text
+          const allTexts = messages.map(m => m.text).filter(t => t).join('\n\n');
+          
           return {
-            response: messages.map(m => m.text).filter(t => t).join('\n\n'),
+            response: allTexts || 'Đây là thông tin bạn cần:',
             messages: messages,
             dishes: allDishes.length > 0 ? allDishes : undefined,
             recipient_id: rasaResponses[0].recipient_id

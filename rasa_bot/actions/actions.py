@@ -70,6 +70,18 @@ try:
         ActionSmartSuggestion
     )
 
+    # Import utility actions
+    from modules.utility_actions import (
+        ActionDenyRequest,
+        ActionHandleError
+    )
+    
+    # Import order confirmation actions
+    from modules.order_confirmation_actions import (
+        ActionConfirmOrderItem,
+        ActionSelectDishByNumber
+    )
+
     print("All action modules imported successfully!")
 
 except ImportError as e:
@@ -119,5 +131,9 @@ __all__ = [
     'ActionModifyOrderItem',
     'ActionConversationManager',
     'ActionUpdateConversationContext',
-    'ActionSmartSuggestion'
+    'ActionSmartSuggestion',
+    'ActionDenyRequest',
+    'ActionHandleError',
+    'ActionConfirmOrderItem',
+    'ActionSelectDishByNumber'
 ]

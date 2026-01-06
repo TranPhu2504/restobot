@@ -12,6 +12,59 @@ from .auth_helper import auth_helper, get_auth_headers_from_tracker
 # URL của FastAPI backend (dùng Docker internal network)
 API_BASE_URL = "http://api:8000/api/v1"
 
+def find_exact_dish_match(dish_name: str, menu_items: list) -> dict:
+    """Find exact dish match with fuzzy matching for better accuracy"""
+    import difflib
+    
+    if not dish_name or not menu_items:
+        return None
+    
+    dish_name_lower = dish_name.lower().strip()
+    
+    # 1. Exact name match (case insensitive)
+    for item in menu_items:
+        if item.get('name', '').lower() == dish_name_lower:
+            return item
+    
+    # 2. Contains match
+    for item in menu_items:
+        item_name_lower = item.get('name', '').lower()
+        if dish_name_lower in item_name_lower or item_name_lower in dish_name_lower:
+            return item
+    
+    # 3. Fuzzy matching (similarity threshold = 0.6)
+    best_match = None
+    best_ratio = 0.6
+    
+    for item in menu_items:
+        item_name_lower = item.get('name', '').lower()
+        ratio = difflib.SequenceMatcher(None, dish_name_lower, item_name_lower).ratio()
+        if ratio > best_ratio:
+            best_ratio = ratio
+            best_match = item
+    
+    return best_match
+
+def get_similar_dishes(dish_name: str, menu_items: list, limit: int = 3) -> list:
+    """Get similar dishes for suggestions when exact match not found"""
+    import difflib
+    
+    if not dish_name or not menu_items:
+        return []
+    
+    dish_name_lower = dish_name.lower().strip()
+    matches = []
+    
+    for item in menu_items:
+        item_name_lower = item.get('name', '').lower()
+        ratio = difflib.SequenceMatcher(None, dish_name_lower, item_name_lower).ratio()
+        if ratio > 0.3:  # Lower threshold for suggestions
+            matches.append((item, ratio))
+    
+    # Sort by similarity and return top matches
+    matches.sort(key=lambda x: x[1], reverse=True)
+    return [match[0] for match in matches[:limit]]
+
 
 class ActionShowMenu(Action):
     """Action để hiển thị thực đơn"""

@@ -138,19 +138,40 @@ Không tìm thấy đặt bàn active của bạn.
 
             print(f"✅ Using reservation ID: {active_reservation.get('id')} for table {active_reservation.get('table_id', 'N/A')}")
 
-            # Tìm món trong menu để lấy ID và giá
-            response = requests.get(f"{API_BASE_URL}/menu/items?q={dish_name}", headers=headers, timeout=5)
+            # Tìm món trong menu để lấy ID và giá - Sử dụng exact matching
+            response = requests.get(f"{API_BASE_URL}/menu/items", headers=headers, timeout=5)
 
             if response.status_code == 200:
                 response_data = response.json()
-                print(f"🔍 Debug: Menu search response: {response_data}")
+                print(f"🔍 Debug: All menu items loaded for exact matching")
                 
                 # API trả về dict với key 'items' chứa list các món
-                items = response_data.get('items', []) if isinstance(response_data, dict) else response_data
+                all_items = response_data.get('items', []) if isinstance(response_data, dict) else response_data
                 
-                if items:
-                    item = items[0]  # Lấy kết quả đầu tiên khớp
-                    print(f"🔍 Debug: Found menu item: {item.get('name')} (ID: {item.get('id')})")
+                # Import exact matching function from menu_actions
+                import sys, os
+                sys.path.append(os.path.dirname(__file__))
+                from .menu_actions import find_exact_dish_match, get_similar_dishes
+                
+                # Find exact match
+                matched_item = find_exact_dish_match(dish_name, all_items)
+                
+                if matched_item:
+                    item = matched_item
+                    print(f"✅ Exact match found: {item.get('name')} (ID: {item.get('id')})")
+                    
+                    # Confirm with user if there's any ambiguity
+                    if dish_name.lower() != item.get('name', '').lower():
+                        dispatcher.utter_message(text=f"🔍 **XÁC NHẬN MÓN ĂN**\n\nBạn muốn gọi: **{item['name']}**?\n💡 Nói 'Có' để xác nhận hoặc 'Không' để chọn lại.")
+                        return [
+                            SlotSet("pending_order_item", {
+                                "dish_name": item['name'],
+                                "menu_item_id": item['id'],
+                                "quantity": quantity,
+                                "price": item.get('price', 0)
+                            }),
+                            SlotSet("conversation_context", "confirm_order_item")
+                        ]
                     table_id = active_reservation.get('table_id')
                     print("authenticated_user:", authenticated_user)
                     customer_id = authenticated_user.get('user_id') if authenticated_user else None
@@ -170,6 +191,7 @@ Không tìm thấy đặt bàn active của bạn.
                         order_data = {
                             "table_id": table_id,
                             "customer_id": customer_id,  # Gửi customer_id
+                            "status": "PENDING",
                             "order_items": [
                                 {
                                     "menu_item_id": item["id"],
@@ -200,7 +222,7 @@ Không tìm thấy đặt bàn active của bạn.
                         print(f"🔍 Debug: Create order response status: {create_order_response.status_code}")
                         print(f"🔍 Debug: Response headers: {dict(create_order_response.headers)}")
                         
-                        if 200:
+                        if create_order_response.status_code != 200:
                             print(f"🔍 Debug: Full response content: {create_order_response.text}")
                             try:
                                 error_detail = create_order_response.json()
@@ -276,9 +298,36 @@ Không tìm thấy đặt bàn active của bạn.
                         dispatcher.utter_message(text="❌ Không thể thêm món vào đơn hàng. Vui lòng thử lại sau.")
                         return []
                 else:
-                    message = f"Xin lỗi, không tìm thấy món '{dish_name}' trong thực đơn. Bạn có thể xem thực đơn để chọn món khác."
-                    dispatcher.utter_message(text=message)
-                    return []
+                    # No exact match found, get similar dishes for suggestion
+                    similar_dishes = get_similar_dishes(dish_name, all_items, limit=5)
+                    
+                    if similar_dishes:
+                        message = f"❓ **KHÔNG TÌM THẤY CHÍNH XÁC:** `{dish_name}`\n\n"
+                        message += "🔍 **Có phải bạn muốn gọi một trong những món này?**\n\n"
+                        
+                        for i, dish in enumerate(similar_dishes, 1):
+                            message += f"{i}. **{dish['name']}**"
+                            if dish.get('price'):
+                                message += f" - {dish['price']:,.0f}đ"
+                            message += "\n"
+                        
+                        message += "\n💡 **Cách chọn:**\n"
+                        message += "• Nói: 'Tôi muốn gọi [tên món chính xác]'\n"
+                        message += "• Hoặc: 'Xem thực đơn' để duyệt tất cả món\n"
+                        message += "• Hoặc: 'Món số [1-5]' để chọn nhanh"
+                        
+                        dispatcher.utter_message(text=message)
+                        return [SlotSet("suggested_dishes", [dish['name'] for dish in similar_dishes])]
+                    else:
+                        message = f"❌ **KHÔNG TÌM THẤY:** `{dish_name}`\n\n"
+                        message += "🔍 **Gợi ý:**\n"
+                        message += "• Nói 'Xem thực đơn' để xem tất cả món\n"
+                        message += "• Thử tên món khác\n"
+                        message += "• Kiểm tra chính tả\n\n"
+                        message += "💡 **Ví dụ:** 'Tôi muốn gọi phở bò' (tên chính xác)"
+                        
+                        dispatcher.utter_message(text=message)
+                        return []
                     
             else:
                 message = "Không thể tìm kiếm món ăn. Vui lòng thử lại sau."

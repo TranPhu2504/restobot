@@ -133,7 +133,7 @@ export interface Table {
   capacity: number;
   location?: string;
   is_active: boolean;
-  current_status: 'available' | 'occupied' | 'reserved';
+  current_status: 'available' | 'occupied' | 'reserved' | 'cleaning' | 'maintenance';
 }
 
 export interface Reservation {
@@ -153,13 +153,13 @@ export interface Reservation {
 }
 
 export interface CreateReservationRequest {
-  customer_name: string;
-  customer_phone: string;
-  customer_email?: string;
-  number_of_guests: number;
-  reservation_date: string;
-  reservation_time: string;
+  table_id: number;
+  reservation_date: string; // ISO format datetime string
+  party_size: number;
   special_requests?: string;
+  customer_name: string;
+  customer_email: string;
+  customer_phone?: string;
 }
 
 // Order Types

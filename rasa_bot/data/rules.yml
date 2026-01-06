@@ -149,7 +149,20 @@ rules:
   - action: action_modify_booking
 
 # ===== AFFIRMATION/DENIAL RULES =====
-- rule: Deny request
+- rule: Handle deny request
   steps:
   - intent: deny
-  - action: action_deny_request
+  - action: utter_deny_request
+
+# ===== FALLBACK RULES =====
+- rule: Fallback rule
+  steps:
+  - intent: nlu_fallback
+  - action: utter_default
+
+- rule: Ask rephrase on low confidence
+  condition:
+  - active_loop: null
+  steps:
+  - intent: nlu_fallback
+  - action: utter_ask_rephrase

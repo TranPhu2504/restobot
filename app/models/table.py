@@ -9,6 +9,8 @@ class TableStatus(str, enum.Enum):
     available = "available"
     occupied = "occupied"
     reserved = "reserved"
+    cleaning = "cleaning"
+    maintenance = "maintenance"
     
 class Table(Base):
     __tablename__ = "tables"

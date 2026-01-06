@@ -15,6 +15,26 @@ from .auth_helper import auth_helper, get_authenticated_user_from_tracker, get_a
 # URL của FastAPI backend (dùng Docker internal network)
 API_BASE_URL = "http://api:8000/api/v1"
 
+# Business hours validation
+def validate_business_hours(reservation_datetime: datetime) -> tuple[bool, str]:
+    """Validate if reservation is within business hours"""
+    weekday = reservation_datetime.weekday()
+    hour = reservation_datetime.hour
+    
+    # Business hours: 10:00-22:00, lunch break: 14:00-17:00 (Mon-Fri)
+    if hour < 10:
+        return False, "🕘 Nhà hàng mở cửa từ **10:00 sáng**. Vui lòng chọn giờ khác."
+    
+    if hour >= 22:
+        return False, "🕘 Nhà hàng đóng cửa lúc **22:00 tối**. Vui lòng chọn giờ khác."
+    
+    # Check lunch break (Monday-Friday only)
+    if weekday < 5 and 14 <= hour < 17:  # Monday=0, Friday=4
+        return False, "🍽️ Nhà hàng **nghỉ trưa từ 14:00-17:00** (Thứ 2-6). Vui lòng chọn:\n• **10:00-14:00** (sáng)\n• **17:00-22:00** (tối)"
+    
+    return True, ""
+API_BASE_URL = "http://api:8000/api/v1"
+
 
 class ActionAskTableBookingInfo(Action):
     """Action để hỏi thông tin đặt bàn theo format chuẩn"""
@@ -363,6 +383,12 @@ Giờ "{reservation_time}" không hợp lệ.
             booking_datetime = datetime.combine(date_obj.date(), time_obj.time())
             if booking_datetime <= datetime.now() + timedelta(hours=1):
                 dispatcher.utter_message(text="⏱️ Vui lòng đặt bàn trước ít nhất 1 giờ.")
+                return []
+
+            # Validate business hours
+            is_valid_time, time_error_msg = validate_business_hours(booking_datetime)
+            if not is_valid_time:
+                dispatcher.utter_message(text=time_error_msg)
                 return []
 
             # Convert back to standard format for API call
