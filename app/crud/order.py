@@ -52,7 +52,7 @@ class CRUDReservation:
         db_obj = Reservation(
             customer_id=obj_in.customer_id,
             table_id=obj_in.table_id,
-            reservation_datetime=obj_in.reservation_datetime,
+            reservation_datetime=obj_in.reservation_date,
             party_size=obj_in.party_size,
             special_requests=obj_in.special_requests,
             notes=obj_in.notes,
@@ -70,6 +70,9 @@ class CRUDReservation:
         self, db: Session, db_obj: Reservation, obj_in: ReservationUpdate
     ) -> Reservation:
         update_data = obj_in.dict(exclude_unset=True)
+        # Map reservation_date to reservation_datetime for database field
+        if 'reservation_date' in update_data:
+            update_data['reservation_datetime'] = update_data.pop('reservation_date')
         for field, value in update_data.items():
             setattr(db_obj, field, value)
         db.add(db_obj)

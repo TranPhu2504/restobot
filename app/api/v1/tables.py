@@ -206,22 +206,40 @@ def check_table_availability(
         time_obj = datetime.strptime(time, "%H:%M").time()
         reservation_datetime = datetime.combine(date_obj, time_obj)
         
-        # Validate business hours
-        is_valid, error_message = BusinessHours.validate_reservation_time(reservation_datetime)
-        if not is_valid:
-            # Return suggested times if restaurant is closed
-            suggested_times = []
-            if "nghỉ trưa" in error_message.lower():
-                suggested_times = ["10:00", "10:30", "11:00", "11:30", "12:00", "12:30", "13:00", "13:30", 
-                                 "17:00", "17:30", "18:00", "18:30", "19:00", "19:30", "20:00", "20:30", "21:00", "21:30"]
-            else:
-                suggested_times = ["10:00", "11:00", "12:00", "17:00", "18:00", "19:00", "20:00", "21:00"]
-                
+        # Basic validation - check business hours only (skip advance booking rule for availability check)
+        weekday = reservation_datetime.weekday()
+        check_time = reservation_datetime.time()
+        
+        # Check if within business hours
+        from app.core.business_hours import BusinessHours
+        business_hours = BusinessHours.BUSINESS_HOURS.get(weekday, [])
+        is_within_hours = False
+        
+        for start_time, end_time in business_hours:
+            if start_time <= check_time <= end_time:
+                is_within_hours = True
+                break
+        
+        if not is_within_hours:
+            suggested_times = ["10:00", "11:00", "12:00", "17:00", "18:00", "19:00", "20:00", "21:00"]
             return AvailabilityResponse(
                 available=False,
                 suggested_times=suggested_times,
                 available_tables=[]
             )
+        
+        # Check lunch break
+        lunch_break = BusinessHours.LUNCH_BREAK.get(weekday)
+        if lunch_break:
+            break_start, break_end = lunch_break
+            if break_start <= check_time <= break_end:
+                suggested_times = ["10:00", "10:30", "11:00", "11:30", "12:00", "12:30", "13:00", "13:30", 
+                                 "17:00", "17:30", "18:00", "18:30", "19:00", "19:30", "20:00", "20:30", "21:00", "21:30"]
+                return AvailabilityResponse(
+                    available=False,
+                    suggested_times=suggested_times,
+                    available_tables=[]
+                )
         
         # Get available tables for the requested time
         available_tables = table_crud.get_available_tables(

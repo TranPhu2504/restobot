@@ -69,32 +69,38 @@ const messageSuggestions = [
   { category: '👋 Chào hỏi', text: 'Xin chào', color: '#4CAF50' },
   { category: '👋 Chào hỏi', text: 'Bạn có thể giúp tôi không', color: '#4CAF50' },
   
-  // Menu & Dishes
+  // Menu & Dishes  
   { category: '🍽️ Thực đơn', text: 'Cho tôi xem thực đơn', color: '#FF9800' },
   { category: '🍽️ Thực đơn', text: 'Có những món gì', color: '#FF9800' },
   { category: '🍽️ Thực đơn', text: 'Món nổi bật', color: '#FF9800' },
   { category: '🍽️ Thực đơn', text: 'Bạn recommend cái gì', color: '#FF9800' },
-  { category: '🍽️ Thực đơn', text: 'Món nào được ưa chuộng', color: '#FF9800' },
+  { category: '🍽️ Thực đơn', text: 'Món được ưa chuộng', color: '#FF9800' },
   { category: '🍽️ Thực đơn', text: 'Món đặc biệt', color: '#FF9800' },
   { category: '🍽️ Thực đơn', text: 'Signature dish', color: '#FF9800' },
+  { category: '🍽️ Thực đơn', text: 'Có món gì ở đây', color: '#FF9800' },
   
-  // Booking
+  // Booking - Match NLU examples exactly
   { category: '🪑 Đặt bàn', text: 'Tôi muốn đặt bàn', color: '#2196F3' },
-  { category: '🪑 Đặt bàn', text: 'Đặt bàn 4 người', color: '#2196F3' },
+  { category: '🪑 Đặt bàn', text: 'Đặt bàn cho 2 người', color: '#2196F3' },
+  { category: '🪑 Đặt bàn', text: 'Đặt bàn 4 người ngày 07/01/2025 lúc 19:00', color: '#2196F3' },
   { category: '🪑 Đặt bàn', text: 'Có bàn trống không', color: '#2196F3' },
   { category: '🪑 Đặt bàn', text: 'Đặt bàn tối nay 19:30', color: '#2196F3' },
-  { category: '🪑 Đặt bàn', text: 'Đặt bàn cho gia đình', color: '#2196F3' },
+  { category: '🪑 Đặt bàn', text: 'Đặt chỗ cho gia đình', color: '#2196F3' },
   { category: '🪑 Đặt bàn', text: 'Hủy đặt bàn', color: '#2196F3' },
+  { category: '🪑 Đặt bàn', text: 'Xác nhận đặt bàn', color: '#2196F3' },
   
-  // Ordering
+  // Ordering - Match NLU examples
   { category: '🛒 Gọi món', text: 'Tôi muốn gọi món', color: '#9C27B0' },
   { category: '🛒 Gọi món', text: 'Gọi đồ ăn', color: '#9C27B0' },
+  { category: '🛒 Gọi món', text: 'Đặt món ăn', color: '#9C27B0' },
   { category: '🛒 Gọi món', text: 'Xem đơn hàng', color: '#9C27B0' },
   { category: '🛒 Gọi món', text: 'Xác nhận đơn hàng', color: '#9C27B0' },
   { category: '🛒 Gọi món', text: 'Thêm món vào đơn', color: '#9C27B0' },
   { category: '🛒 Gọi món', text: 'Sửa đơn hàng', color: '#9C27B0' },
+  { category: '🛒 Gọi món', text: 'Hủy đơn hàng', color: '#9C27B0' },
   { category: '💳 Thanh toán', text: 'Tôi muốn thanh toán', color: '#795548' },
   { category: '💳 Thanh toán', text: 'Thanh toán đơn hàng', color: '#795548' },
+  { category: '💳 Thanh toán', text: 'Thanh toán tiền mặt', color: '#795548' },
   
   // Restaurant Info
   { category: 'ℹ️ Thông tin', text: 'Giờ mở cửa', color: '#607D8B' },

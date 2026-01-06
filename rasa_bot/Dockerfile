@@ -36,8 +36,5 @@ EXPOSE 5005 5055
 # Create models directory
 RUN mkdir -p models
 
-# Train Rasa model during build
-RUN rasa train --fixed-model-name restobot-model
-
 # Default command (can be overridden)
 CMD ["rasa", "run", "--model", "models/restobot-model.tar.gz", "--port", "5005", "--enable-api", "--cors", "*"]

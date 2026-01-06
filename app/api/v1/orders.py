@@ -459,7 +459,7 @@ def get_bestseller_dishes(
         .filter(
             OrderModel.created_at >= start_date,
             OrderModel.created_at <= end_date,
-            OrderModel.status.in_([OrderStatus.COMPLETED, OrderStatus.PREPARING, OrderStatus.READY])
+            OrderModel.status.in_([OrderStatus.completed, OrderStatus.preparing, OrderStatus.ready])
         )
         .group_by(OrderItem.menu_item_id)
         .order_by(func.sum(OrderItem.quantity).desc())
