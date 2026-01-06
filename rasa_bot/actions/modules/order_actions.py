@@ -96,27 +96,53 @@ class ActionAddToOrder(Action):
                     if reservation.get('status') == 'confirmed' or reservation.get('status') == 'pending':
                         # Kiểm tra ngày đặt bàn có trong khoảng từ hôm nay đến 7 ngày tới
                         reservation_date = reservation.get('reservation_date')
-                        print(f"🔍 Debug: Reservation date: {reservation_date}")
+                        print(f"🔍 Debug: Raw reservation_date value: {reservation_date} (type: {type(reservation_date).__name__})")
+                        print(f"🔍 Debug: Full reservation object: {reservation}")
+                        
                         if reservation_date:
                             try:
-                                # Parse reservation date
-                                if 'T' in str(reservation_date):
-                                    res_date = datetime.fromisoformat(str(reservation_date).replace('Z', '')).date()
-                                else:
-                                    res_date = datetime.strptime(str(reservation_date), '%Y-%m-%d').date()
+                                # Parse reservation date - handle multiple formats
+                                res_date = None
+                                date_str = str(reservation_date)
                                 
-                                print(f"🔍 Debug: Parsed date: {res_date}")
+                                # Try ISO format with T separator (2026-01-07T19:00:00)
+                                if 'T' in date_str:
+                                    res_date = datetime.fromisoformat(date_str.replace('Z', '').replace('+00:00', '')).date()
+                                    print(f"✅ Parsed ISO datetime: {res_date}")
+                                # Try date-only format (2026-01-07)
+                                elif len(date_str) == 10 and date_str.count('-') == 2:
+                                    res_date = datetime.strptime(date_str, '%Y-%m-%d').date()
+                                    print(f"✅ Parsed YYYY-MM-DD: {res_date}")
+                                # Try datetime string formats
+                                else:
+                                    for fmt in ['%Y-%m-%d %H:%M:%S', '%Y-%m-%d %H:%M:%S.%f']:
+                                        try:
+                                            res_date = datetime.strptime(date_str, fmt).date()
+                                            print(f"✅ Parsed with format {fmt}: {res_date}")
+                                            break
+                                        except ValueError:
+                                            continue
+                                
+                                if not res_date:
+                                    print(f"❌ FAILED to parse reservation_date: {reservation_date}")
+                                    continue
+                                
+                                print(f"🔍 Comparing: {today} <= {res_date} <= {max_future_date}")
                                 
                                 # Cho phép gọi món cho reservation từ hôm nay đến 7 ngày tới
                                 if today <= res_date <= max_future_date:
-                                    print(f"✅ Found active reservation for {res_date}")
+                                    print(f"✅✅✅ FOUND ACTIVE RESERVATION #{reservation.get('id')} for {res_date}")
                                     active_reservation = reservation
                                     break
                                 else:
-                                    print(f"❌ Reservation date {res_date} is outside allowed range")
+                                    print(f"❌ Date {res_date} outside range [{today}, {max_future_date}]")
                             except Exception as e:
-                                print(f"❌ Error parsing reservation date: {e}")
+                                print(f"❌ Exception parsing date: {e}")
+                                import traceback
+                                traceback.print_exc()
                                 continue
+                        else:
+                            print(f"⚠️ Reservation #{reservation.get('id')} has no reservation_date field!")
             else:
                 print(f"❌ API call to /reservations/my failed with status {reservations_response.status_code}")
                 print(f"❌ Response: {reservations_response.text}")
@@ -452,6 +478,7 @@ Bạn chưa gọi món nào.
             
             if response.status_code == 200:
                 order_info = response.json()
+                print(f"🔍 Debug: Full order_info response: {order_info}")
                 
                 if not order_info.get('order_items'):
                     dispatcher.utter_message(text="""📝 **ĐƠN HÀNG TRỐNG**
@@ -465,10 +492,13 @@ Bạn chưa gọi món nào.
                 total_amount = 0.0
 
                 for i, item in enumerate(order_info['order_items'], 1):
+                    print(f"🔍 Debug: Processing order_item {i}: {item}")
                     menu_item = item.get('menu_item', {})
+                    print(f"🔍 Debug: menu_item data: {menu_item}")
                     quantity = item.get('quantity', 0)
                     unit_price = item.get('unit_price', 0)
                     subtotal = item.get('subtotal', 0)
+                    print(f"🔍 Debug: quantity={quantity}, unit_price={unit_price}, subtotal={subtotal}")
                     total_amount += subtotal
                     
                     price_formatted = f"{unit_price:,.0f}đ"
@@ -549,6 +579,9 @@ class ActionConfirmOrder(Action):
                 headers=headers,
                 timeout=10
             )
+            
+            print(f"🔍 Debug: Confirm order response status: {update_response.status_code}")
+            print(f"🔍 Debug: Confirm order response: {update_response.text}")
             
             if update_response.status_code == 200:
                 # Tính tổng tiền

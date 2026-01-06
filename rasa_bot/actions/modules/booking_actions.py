@@ -565,6 +565,17 @@ class ActionCancelReservation(Action):
             dispatcher.utter_message(text="🔐 Vui lòng đăng nhập để hủy đặt bàn.")
             return []
         
+        # Check if user specified a reservation number (e.g., "Hủy bàn số 1")
+        latest_message = tracker.latest_message.get('text', '').lower()
+        reservation_number = None
+        
+        # Try to extract number from messages like "Hủy bàn số 1", "hủy số 2", etc.
+        import re
+        number_match = re.search(r'(?:hủy|xóa).*?(?:bàn\s*)?số\s*(\d+)', latest_message)
+        if number_match:
+            reservation_number = int(number_match.group(1))
+            print(f"🔍 Debug: User wants to cancel reservation number: {reservation_number}")
+        
         try:
             # Sử dụng auth headers từ user token, fallback to Rasa headers
             headers = get_auth_headers_from_tracker(tracker)
@@ -636,6 +647,65 @@ Bạn không có đặt bàn nào đang chờ xử lý (từ hôm nay trở đi)
 📞 **Liên hệ:** Gọi 0901234567 nếu cần hỗ trợ""")
                 return []
             
+            if not active_reservations:
+                dispatcher.utter_message(text="""ℹ️ **KHÔNG CÓ ĐẶT BÀN ĐỂ HỦY**
+
+Bạn không có đặt bàn nào đang chờ xử lý.
+
+📋 **Để đặt bàn mới:** 
+Nói "Tôi muốn đặt bàn [số người] người ngày [dd/mm/yyyy] lúc [hh:mm]" """)
+                return []
+            
+            # If user specified a reservation number, handle it directly
+            if reservation_number is not None:
+                if 1 <= reservation_number <= len(active_reservations):
+                    reservation = active_reservations[reservation_number - 1]  # Convert to 0-based index
+                    
+                    # Get reservation details
+                    try:
+                        if 'T' in str(reservation.get('reservation_date')):
+                            res_datetime = datetime.fromisoformat(str(reservation.get('reservation_date')).replace('Z', ''))
+                        else:
+                            res_datetime = datetime.strptime(str(reservation.get('reservation_date')), '%Y-%m-%d')
+                        
+                        date_str = res_datetime.strftime('%d/%m/%Y')
+                        time_str = res_datetime.strftime('%H:%M')
+                    except:
+                        date_str = str(reservation.get('reservation_date', 'N/A'))
+                        time_str = 'N/A'
+                    
+                    table_info = reservation.get('table', {})
+                    table_number = table_info.get('number', reservation.get('table_id', 'N/A'))
+                    party_size = reservation.get('party_size', 'N/A')
+                    
+                    confirmation_message = f"""❓ **XÁC NHẬN HỦY ĐẶT BÀN SỐ {reservation_number}**
+
+📋 **Thông tin đặt bàn:**
+🪑 **Bàn:** {table_number}
+👥 **Số người:** {party_size} người  
+📅 **Ngày:** {date_str}
+🕐 **Giờ:** {time_str}
+
+⚠️ **Bạn có chắc chắn muốn hủy đặt bàn này không?**
+
+💡 **Chọn:**
+• Nói **"Có"** để xác nhận hủy
+• Nói **"Không"** để giữ lại đặt bàn"""
+                    
+                    dispatcher.utter_message(text=confirmation_message)
+                    
+                    return [
+                        SlotSet("pending_cancellation_reservation_id", reservation.get('id')),
+                        SlotSet("conversation_context", "cancel_reservation_confirmation")
+                    ]
+                else:
+                    dispatcher.utter_message(text=f"""❌ **SỐ THỨ TỰ KHÔNG HỢP LỆ**
+
+Bạn chỉ có {len(active_reservations)} đặt bàn. Vui lòng chọn từ 1-{len(active_reservations)}.
+
+💡 **Thử lại:** "Hủy bàn số [1-{len(active_reservations)}]" """)
+                    return []
+
             # Nếu có nhiều reservation, hiển thị danh sách để chọn
             if len(active_reservations) > 1:
                 message = "📋 **BẠN CÓ NHIỀU ĐẶT BÀN**\n\n"
@@ -657,7 +727,7 @@ Bạn không có đặt bàn nào đang chờ xử lý (từ hôm nay trở đi)
                     except:
                         message += f"{i}. Đặt bàn #{res.get('id', 'N/A')}\n\n"
                 
-                message += "� **Để hủy:** Nói 'Hủy bàn số [1/2/3...]' hoặc liên hệ nhân viên"
+                message += "💡 **Để hủy:** Nói 'Hủy bàn số [1/2/3...]' hoặc liên hệ nhân viên"
                 dispatcher.utter_message(text=message)
                 return []
             

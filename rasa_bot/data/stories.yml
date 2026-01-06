@@ -171,17 +171,6 @@ stories:
   - intent: confirm_order
   - action: action_confirm_order
 
-- story: complete booking flow
-  steps:
-  - intent: greet
-  - action: utter_greet
-  - intent: book_table
-  - action: action_book_table
-  - intent: confirm_booking
-  - action: action_confirm_booking
-  - intent: goodbye
-  - action: utter_goodbye
-
 - story: menu then booking
   steps:
   - intent: view_menu
@@ -198,13 +187,6 @@ stories:
   - intent: view_menu
   - action: action_show_menu
   - intent: contextual_question  # "món đó giá bao nhiêu?"
-  - action: action_conversation_manager
-
-- story: order item reference in current order
-  steps:
-  - intent: add_to_order
-  - action: action_add_to_order
-  - intent: order_item_reference  # "món đầu tiên giá bao nhiêu?"
   - action: action_conversation_manager
 
 - story: modify booking with specific field

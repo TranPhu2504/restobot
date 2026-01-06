@@ -20,9 +20,7 @@ class ActionShowOpeningHours(Action):
         message = """🕐 **GIỜ MỞ CỬA NHÀ HÀNG**
 
 📅 **Thứ 2 - Chủ nhật:**
-• **Sáng:** 06:00 - 10:00
-• **Trưa:** 11:00 - 14:00  
-• **Tối:** 17:00 - 22:00
+• **Mở cửa:** 10:00 - 22:00
 
 🎉 **Ngày lễ:** Mở cửa bình thường
 🚫 **Nghỉ:** Không có ngày nghỉ trong tuần
