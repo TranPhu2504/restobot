@@ -183,7 +183,7 @@ def create_reservations(db: Session, users, tables):
         {
             "customer_id": users[3].id,  # Nguyễn Văn A
             "table_id": tables[0].id,  # Bàn 1
-            "reservation_date": now + timedelta(days=1, hours=12),  # Ngày mai 12h
+            "reservation_datetime": now + timedelta(days=1, hours=12),  # Ngày mai 12h
             "party_size": 4,
             "status": ReservationStatus.confirmed,
             "special_requests": "Muốn chỗ ngồi gần cửa sổ"
@@ -191,7 +191,7 @@ def create_reservations(db: Session, users, tables):
         {
             "customer_id": users[3].id,
             "table_id": tables[4].id,  # Bàn 5
-            "reservation_date": now + timedelta(days=2, hours=19),  # Ngày kia 19h
+            "reservation_datetime": now + timedelta(days=2, hours=19),  # Ngày kia 19h
             "party_size": 6,
             "status": ReservationStatus.pending,
             "special_requests": "Chuẩn bị ô tô tìm vợ"
@@ -199,7 +199,7 @@ def create_reservations(db: Session, users, tables):
         {
             "customer_id": users[2].id,  # Customer user
             "table_id": tables[10].id,  # Bàn VIP
-            "reservation_date": now + timedelta(days=3, hours=18),
+            "reservation_datetime": now + timedelta(days=3, hours=18),
             "party_size": 8,
             "status": ReservationStatus.confirmed,
             "special_requests": "Tiệc sinh nhật, cần trang trí"
@@ -207,7 +207,7 @@ def create_reservations(db: Session, users, tables):
         {
             "customer_id": users[3].id,
             "table_id": tables[1].id,  # Bàn 2
-            "reservation_date": now + timedelta(hours=6),  # Hôm nay 6h tối
+            "reservation_datetime": now + timedelta(hours=6),  # Hôm nay 6h tối
             "party_size": 2,
             "status": ReservationStatus.confirmed,
             "special_requests": None
