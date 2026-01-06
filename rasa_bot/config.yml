@@ -24,9 +24,8 @@ pipeline:
      model_confidence: linear_norm
      loss_type: cross_entropy
      ranking_length: 10
-     use_masked_language_model: False
+     use_masked_language_model: false
      BILOU_flag: true
-     # Increased embedding dimensions for better Vietnamese understanding
      number_of_transformer_layers: 4
      transformer_size: 256
      drop_rate: 0.1
@@ -44,7 +43,7 @@ pipeline:
 policies:
   - name: MemoizationPolicy
     max_history: 5
-    priority: 1
+    priority: 2
   - name: RulePolicy
     core_fallback_threshold: 0.3
     core_fallback_action_name: "utter_default"
@@ -60,10 +59,9 @@ policies:
     constrain_similarities: true
     loss_type: cross_entropy
     ranking_length: 10
-    # Improved configuration for better conversation handling
     number_of_transformer_layers: 4
     transformer_size: 256
     drop_rate: 0.1
     drop_rate_attention: 0.0
-    use_masked_language_model: False
+    use_masked_language_model: false
     priority: 3
