@@ -114,6 +114,25 @@ class OrderItem(OrderItemInDBBase):
     pass
 
 
+class MenuItem(BaseModel):
+    """Menu item schema for nested relationships"""
+    id: int
+    name: str
+    price: float
+    description: Optional[str] = None
+    category_id: int
+    image_url: Optional[str] = None
+    is_available: bool
+    
+    class Config:
+        orm_mode = True
+
+
+class OrderItemWithMenuItem(OrderItemInDBBase):
+    """Order item with full menu item details"""
+    menu_item: Optional[MenuItem] = None
+
+
 # Order Schemas
 class OrderBase(BaseModel):
     customer_id: Optional[int] = None
@@ -151,7 +170,7 @@ class OrderInDBBase(OrderBase):
 
 
 class Order(OrderInDBBase):
-    order_items: List[Any] = []  # Use Any to avoid circular reference
+    order_items: List[OrderItemWithMenuItem] = []
 
 
 class OrderWithDetails(OrderInDBBase):

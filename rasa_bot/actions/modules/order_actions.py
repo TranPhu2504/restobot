@@ -461,6 +461,7 @@ class ActionViewCurrentOrder(Action):
             
             # Lấy order hiện tại từ slot hoặc tìm order active
             current_order_id = tracker.get_slot("current_order_id")
+            print(f"🔍 Debug: current_order_id from slot = {current_order_id}")
             
             if not current_order_id:
                 dispatcher.utter_message(text="""📝 **CHƯA CÓ ĐƠN HÀNG**
@@ -473,8 +474,12 @@ Bạn chưa gọi món nào.
 📋 **Ví dụ:** "Tôi muốn gọi Phở Bò" """)
                 return []
             
-            # Lấy thông tin order từ API với details
-            response = requests.get(f"{API_BASE_URL}/orders/orders/{current_order_id}/details", headers=headers, timeout=5)
+            # Lấy thông tin order từ API
+            response = requests.get(f"{API_BASE_URL}/orders/orders/{current_order_id}", headers=headers, timeout=5)
+            
+            print(f"🔍 Debug: Order API response status: {response.status_code}")
+            if response.status_code != 200:
+                print(f"❌ Order API failed with: {response.text}")
             
             if response.status_code == 200:
                 order_info = response.json()
@@ -493,11 +498,14 @@ Bạn chưa gọi món nào.
 
                 for i, item in enumerate(order_info['order_items'], 1):
                     print(f"🔍 Debug: Processing order_item {i}: {item}")
-                    # For details endpoint, item data is directly in the item object
+                    
+                    # API now returns menu_item nested
+                    menu_item = item.get('menu_item', {})
                     quantity = item.get('quantity', 0)
                     unit_price = item.get('unit_price', 0)
                     total_price = item.get('total_price', 0)
-                    item_name = item.get('item_name', 'Món không tên')
+                    item_name = menu_item.get('name', 'Món không tên')
+                    
                     print(f"🔍 Debug: item_name={item_name}, quantity={quantity}, unit_price={unit_price}, total_price={total_price}")
                     total_amount += total_price
                     
@@ -519,6 +527,8 @@ Bạn chưa gọi món nào.
 
                 dispatcher.utter_message(text=order_text)
             else:
+                print(f"❌ Order API failed with status: {response.status_code}")
+                print(f"❌ Error response: {response.text}")
                 dispatcher.utter_message(text="❌ Không thể tải thông tin đơn hàng. Vui lòng thử lại sau.")
         
         except requests.exceptions.Timeout:
@@ -675,23 +685,29 @@ Bạn không có đơn hàng nào đang chờ xử lý.
                 # Hiển thị thông tin đơn hàng và xác nhận
                 table_id = order_info.get('table_id', 'N/A')
                 order_status = order_info.get('status', 'PENDING')
-                total_amount = sum(item.get('subtotal', 0) for item in order_info['order_items'])
+                total_amount = 0.0
                 
                 confirmation_message = f"""❓ **XÁC NHẬN HỦY ĐƠN HÀNG**
 
 📋 **Thông tin đơn hàng:**
 🆔 **Mã đơn:** #{current_order_id}
 🪑 **Bàn:** {table_id}
-📊 **Trạng thái:** {order_status}
-💰 **Tổng tiền:** {total_amount:,.0f}đ
-
-📝 **Các món đã gọi:**"""
+📊 **Trạng thái:** {order_status}"""
                 
+                items_text = "\n\n📝 **Các món đã gọi:**"
                 for i, item in enumerate(order_info['order_items'], 1):
+                    # API now returns menu_item nested
                     menu_item = item.get('menu_item', {})
+                    
                     quantity = item.get('quantity', 0)
-                    subtotal = item.get('subtotal', 0)
-                    confirmation_message += f"\n{i}. {menu_item.get('name', 'N/A')} x{quantity} = {subtotal:,.0f}đ"
+                    total_price = item.get('total_price', 0)
+                    item_name = menu_item.get('name', 'Món không tên')
+                    
+                    total_amount += total_price
+                    items_text += f"\n{i}. {item_name} x{quantity} = {total_price:,.0f}đ"
+                
+                confirmation_message += f"\n💰 **Tổng tiền:** {total_amount:,.0f}đ"
+                confirmation_message += items_text
                 
                 confirmation_message += f"""
 

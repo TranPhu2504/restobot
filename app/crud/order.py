@@ -252,7 +252,10 @@ class CRUDReservation:
         return obj
 class CRUDOrder:
     def get(self, db: Session, id: int) -> Optional[Order]:
-        return db.query(Order).filter(Order.id == id).first()
+        from sqlalchemy.orm import joinedload
+        return db.query(Order).options(
+            joinedload(Order.order_items).joinedload(OrderItem.menu_item)
+        ).filter(Order.id == id).first()
     def update_order_total(self, db: Session, order_id: int) -> Optional[Order]:
         """Update order total amount based on order items"""
         order = self.get(db, id=order_id)
