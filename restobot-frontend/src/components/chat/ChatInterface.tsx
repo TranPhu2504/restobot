@@ -32,7 +32,6 @@ import {
   Circle as StatusIcon,
   Login as LoginIcon,
   ViewList as StatusViewIcon,
-  AccessTime as AccessTimeIcon,
 } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
 import { chatService } from '../../services/chatService';
@@ -66,42 +65,42 @@ interface ConnectionStatus {
 
 // Gợi ý tin nhắn dựa trên NLU
 const messageSuggestions = [
-  // Quick Start Process
-  { category: '🚀 Bắt đầu', text: 'Hướng dẫn đặt hàng', color: '#E91E63' },
-  { category: '🚀 Bắt đầu', text: 'Quy định nhà hàng', color: '#E91E63' },
-  { category: '🚀 Bắt đầu', text: 'Xin chào', color: '#4CAF50' },
-  { category: '🚀 Bắt đầu', text: 'Tôi cần hỗ trợ', color: '#4CAF50' },
-  
-  // Booking Process
-  { category: '1️⃣ Bước 1: Đặt bàn', text: 'Đặt bàn 4 người ngày 07/01/2026 lúc 19:00', color: '#2196F3' },
-  { category: '1️⃣ Bước 1: Đặt bàn', text: 'Có bàn trống không', color: '#2196F3' },
-  { category: '1️⃣ Bước 1: Đặt bàn', text: 'Đặt bàn cho 2 người', color: '#2196F3' },
-  { category: '1️⃣ Bước 1: Đặt bàn', text: 'Hủy đặt bàn', color: '#2196F3' },
+  // Greeting & Basics
+  { category: '👋 Chào hỏi', text: 'Xin chào', color: '#4CAF50' },
+  { category: '� Chào hỏi', text: 'Bạn có thể giúp tôi không', color: '#4CAF50' },
   
   // Menu & Dishes  
-  { category: '2️⃣ Bước 2: Thực đơn', text: 'Cho tôi xem thực đơn', color: '#FF9800' },
-  { category: '2️⃣ Bước 2: Thực đơn', text: 'Món nổi bật', color: '#FF9800' },
-  { category: '2️⃣ Bước 2: Thực đơn', text: 'Món được ưa chuộng', color: '#FF9800' },
-  { category: '2️⃣ Bước 2: Thực đơn', text: 'Món đặc biệt', color: '#FF9800' },
-  { category: '2️⃣ Bước 2: Thực đơn', text: 'Bạn recommend cái gì', color: '#FF9800' },
+  { category: '🍽️ Thực đơn', text: 'Cho tôi xem thực đơn', color: '#FF9800' },
+  { category: '🍽️ Thực đơn', text: 'Có những món gì', color: '#FF9800' },
+  { category: '🍽️ Thực đơn', text: 'Món nổi bật', color: '#FF9800' },
+  { category: '🍽️ Thực đơn', text: 'Bạn recommend cái gì', color: '#FF9800' },
+  { category: '🍽️ Thực đơn', text: 'Món được ưa chuộng', color: '#FF9800' },
+  { category: '🍽️ Thực đơn', text: 'Món đặc biệt', color: '#FF9800' },
+  { category: '🍽️ Thực đơn', text: 'Signature dish', color: '#FF9800' },
+  { category: '🍽️ Thực đơn', text: 'Có món gì ở đây', color: '#FF9800' },
   
-  // Ordering Process
-  { category: '3️⃣ Bước 3: Gọi món', text: 'Tôi muốn gọi phở bò', color: '#9C27B0' },
-  { category: '3️⃣ Bước 3: Gọi món', text: 'Thêm cà phê sữa đá', color: '#9C27B0' },
-  { category: '3️⃣ Bước 3: Gọi món', text: 'Gọi bánh mì thịt nướng', color: '#9C27B0' },
-  { category: '3️⃣ Bước 3: Gọi món', text: 'Thêm cơm tấm sườn nướng', color: '#9C27B0' },
+  // Booking - Match NLU examples exactly
+  { category: '🪑 Đặt bàn', text: 'Tôi muốn đặt bàn', color: '#2196F3' },
+  { category: '🪑 Đặt bàn', text: 'Đặt bàn cho 2 người', color: '#2196F3' },
+  { category: '🪑 Đặt bàn', text: 'Đặt bàn 4 người ngày 07/01/2025 lúc 19:00', color: '#2196F3' },
+  { category: '🪑 Đặt bàn', text: 'Có bàn trống không', color: '#2196F3' },
+  { category: '🪑 Đặt bàn', text: 'Đặt bàn tối nay 19:30', color: '#2196F3' },
+  { category: '🪑 Đặt bàn', text: 'Đặt chỗ cho gia đình', color: '#2196F3' },
+  { category: '🪑 Đặt bàn', text: 'Hủy đặt bàn', color: '#2196F3' },
+  { category: '🪑 Đặt bàn', text: 'Xác nhận đặt bàn', color: '#2196F3' },
   
-  // Order Management
-  { category: '4️⃣ Bước 4: Quản lý', text: 'Xem đơn hàng', color: '#673AB7' },
-  { category: '4️⃣ Bước 4: Quản lý', text: 'Sửa đơn hàng', color: '#673AB7' },
-  { category: '4️⃣ Bước 4: Quản lý', text: 'Xóa món khỏi đơn', color: '#673AB7' },
-  { category: '4️⃣ Bước 4: Quản lý', text: 'Hủy đơn hàng', color: '#673AB7' },
-  
-  // Confirmation & Payment
-  { category: '5️⃣ Bước 5: Hoàn tất', text: 'Xác nhận đơn hàng', color: '#4CAF50' },
-  { category: '5️⃣ Bước 5: Hoàn tất', text: 'Thanh toán đơn hàng', color: '#795548' },
-  { category: '5️⃣ Bước 5: Hoàn tất', text: 'Thanh toán tiền mặt', color: '#795548' },
-  { category: '5️⃣ Bước 5: Hoàn tất', text: 'Thanh toán bằng thẻ', color: '#795548' },
+  // Ordering - Match NLU examples
+  { category: '🛒 Gọi món', text: 'Tôi muốn gọi món', color: '#9C27B0' },
+  { category: '🛒 Gọi món', text: 'Gọi đồ ăn', color: '#9C27B0' },
+  { category: '🛒 Gọi món', text: 'Đặt món ăn', color: '#9C27B0' },
+  { category: '🛒 Gọi món', text: 'Xem đơn hàng', color: '#9C27B0' },
+  { category: '🛒 Gọi món', text: 'Xác nhận đơn hàng', color: '#9C27B0' },
+  { category: '🛒 Gọi món', text: 'Thêm món vào đơn', color: '#9C27B0' },
+  { category: '🛒 Gọi món', text: 'Sửa đơn hàng', color: '#9C27B0' },
+  { category: '🛒 Gọi món', text: 'Hủy đơn hàng', color: '#9C27B0' },
+  { category: '💳 Thanh toán', text: 'Tôi muốn thanh toán', color: '#795548' },
+  { category: '💳 Thanh toán', text: 'Thanh toán đơn hàng', color: '#795548' },
+  { category: '💳 Thanh toán', text: 'Thanh toán tiền mặt', color: '#795548' },
   
   // Restaurant Info
   { category: 'ℹ️ Thông tin', text: 'Giờ mở cửa', color: '#607D8B' },
@@ -170,33 +169,15 @@ const ChatInterface: React.FC = () => {
     // Thêm tin nhắn chào mừng
     const welcomeMessage: Message = {
       id: Date.now().toString(),
-      text: `🍽️ **Chào mừng đến với RestoBot!**
-Tôi là trợ lý ảo của nhà hàng, sẵn sàng phục vụ bạn 24/7.
+      text: `Xin chào! Tôi là RestoBot - trợ lý ảo nhà hàng.
 
-**📋 QUY ĐỊNH NHÀ HÀNG:**
-• 🕐 Giờ mở cửa: 10:00 - 22:00 (7 ngày/tuần)
-• 📅 Đặt bàn: Trước ít nhất 1 giờ, tối đa 30 ngày
-• 🔄 Hủy/đổi lịch: Trước 2 giờ để không mất phí
-• 👥 Đặt bàn: Từ 1-20 người (bàn VIP cho 8+ người)
-• 💳 Thanh toán: Tiền mặt, thẻ, chuyển khoản, QR
+Tôi có thể giúp bạn:
+• Đặt bàn - Chỉ cần nói "Tôi muốn đặt bàn" hoặc "Đặt bàn cho 4 người"
+• Xem thực đơn và gợi ý món ăn
+• Gọi món ăn và quản lý đơn hàng  
+• Thông tin nhà hàng (địa chỉ, giờ mở cửa, liên hệ)
 
-**🎯 QUY TRÌNH ĐẶT HÀNG:**
-**Bước 1:** Đăng nhập tài khoản
-**Bước 2:** Đặt bàn: "Đặt bàn [X] người ngày [DD/MM/YYYY] lúc [HH:MM]"
-**Bước 3:** Xem thực đơn: "Xem thực đơn" hoặc "Món nổi bật"
-**Bước 4:** Gọi món: "Tôi muốn gọi [tên món]" hoặc "Thêm [tên món]"
-**Bước 5:** Xem đơn hàng: "Xem đơn hàng"
-**Bước 6:** Xác nhận: "Xác nhận đơn hàng"
-**Bước 7:** Thanh toán: "Thanh toán đơn hàng"
-
-**💡 CHỨC NĂNG CHÍNH:**
-• 🪑 **Đặt bàn:** "Đặt bàn 4 người ngày 07/01/2026 lúc 19:00"
-• 📋 **Thực đơn:** "Xem thực đơn", "Món nổi bật", "Món đặc biệt"
-• 🛒 **Gọi món:** "Tôi muốn ăn phở bò", "Thêm cà phê sữa đá"
-• 📊 **Quản lý:** "Xem đơn hàng", "Hủy đặt bàn", "Sửa đơn hàng"
-• ℹ️ **Thông tin:** "Giờ mở cửa", "Địa chỉ", "Khuyến mãi"
-
-**🚀 BẮT ĐẦU:** Chọn gợi ý bên dưới hoặc nhập tin nhắn trực tiếp!`,
+Bạn có thể sử dụng các nút gợi ý bên dưới hoặc nhập tin nhắn trực tiếp!`,
       sender: 'bot',
       timestamp: new Date(),
     };
@@ -567,32 +548,25 @@ Tôi là trợ lý ảo của nhà hàng, sẵn sàng phục vụ bạn 24/7.
                               )}
                               <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, flexWrap: 'wrap' }}>
                                 {dish.price && (
-                                  <Chip
-                                    icon={<RestaurantIcon sx={{ fontSize: 14 }} />}
+                                  <Chip 
                                     label={`${dish.price.toLocaleString('vi-VN')}đ`}
                                     size="small"
                                     color="primary"
-                                    variant="outlined"
-                                    sx={{ fontSize: '0.7rem' }}
-                                  />
-                                )}
-                                {dish.category && (
-                                  <Chip
-                                    label={dish.category}
-                                    size="small"
-                                    variant="outlined"
-                                    sx={{ fontSize: '0.7rem' }}
+                                    sx={{ height: 20, fontSize: '0.7rem' }}
                                   />
                                 )}
                                 {dish.preparation_time && (
-                                  <Chip
-                                    icon={<AccessTimeIcon sx={{ fontSize: 14 }} />}
+                                  <Chip 
                                     label={`${dish.preparation_time} phút`}
                                     size="small"
-                                    color="secondary"
                                     variant="outlined"
-                                    sx={{ fontSize: '0.7rem' }}
+                                    sx={{ height: 20, fontSize: '0.7rem' }}
                                   />
+                                )}
+                                {dish.category && (
+                                  <Typography variant="caption" color="text.secondary">
+                                    {dish.category}
+                                  </Typography>
                                 )}
                               </Box>
                             </CardContent>
