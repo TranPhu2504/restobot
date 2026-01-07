@@ -82,12 +82,12 @@ const messageSuggestions = [
   // Booking - Match NLU examples exactly
   { category: '🪑 Đặt bàn', text: 'Tôi muốn đặt bàn', color: '#2196F3' },
   { category: '🪑 Đặt bàn', text: 'Đặt bàn cho 2 người', color: '#2196F3' },
-  { category: '🪑 Đặt bàn', text: 'Đặt bàn 4 người ngày 07/01/2025 lúc 19:00', color: '#2196F3' },
+  { category: '🪑 Đặt bàn', text: 'Đặt bàn 4 người ngày 07/01/2026 lúc 19:00', color: '#2196F3' },
   { category: '🪑 Đặt bàn', text: 'Có bàn trống không', color: '#2196F3' },
-  { category: '🪑 Đặt bàn', text: 'Đặt bàn tối nay 19:30', color: '#2196F3' },
+  { category: '🪑 Đặt bàn', text: 'Đặt bàn hôm nay 19:30', color: '#2196F3' },
   { category: '🪑 Đặt bàn', text: 'Đặt chỗ cho gia đình', color: '#2196F3' },
   { category: '🪑 Đặt bàn', text: 'Hủy đặt bàn', color: '#2196F3' },
-  { category: '🪑 Đặt bàn', text: 'Xác nhận đặt bàn', color: '#2196F3' },
+  { category: '🪑 Đặt bàn', text: 'Xem đặt bàn', color: '#2196F3' },
   
   // Ordering - Match NLU examples
   { category: '🛒 Gọi món', text: 'Tôi muốn gọi món', color: '#9C27B0' },
@@ -109,12 +109,13 @@ const messageSuggestions = [
   { category: 'ℹ️ Thông tin', text: 'Có khuyến mãi gì không', color: '#607D8B' },
   { category: 'ℹ️ Thông tin', text: 'Thông tin liên hệ', color: '#607D8B' },
   
-  // Popular dishes examples
-  { category: '🍜 Món ăn', text: 'Tôi muốn ăn phở bò', color: '#E91E63' },
-  { category: '🍜 Món ăn', text: 'Cho tôi 2 phần bò bít tết', color: '#E91E63' },
-  { category: '🍜 Món ăn', text: 'Gọi 1 ly cà phê', color: '#E91E63' },
-  { category: '🍜 Món ăn', text: 'Thêm cá hồi nướng', color: '#E91E63' },
-  { category: '🍜 Món ăn', text: 'Giá món này bao nhiêu', color: '#E91E63' },
+  // Popular dishes examples - Match seed data exactly
+  { category: '🍜 Món ăn', text: 'Tôi muốn ăn Phở Bò Tái', color: '#E91E63' },
+  { category: '🍜 Món ăn', text: 'Gọi Bánh Mì Thịt Nướng', color: '#E91E63' },
+  { category: '🍜 Món ăn', text: 'Cho tôi 1 ly Cà Phê Sữa Đá', color: '#E91E63' },
+  { category: '🍜 Món ăn', text: 'Thêm Bún Bò Huế', color: '#E91E63' },
+  { category: '🍜 Món ăn', text: 'Gọi Cơm Tấm Sườn Nướng', color: '#E91E63' },
+  { category: '🍜 Món ăn', text: 'Cho tôi Gỏi Cuốn Tôm Thịt', color: '#E91E63' },
   
   // Confirmations
   { category: '✅ Xác nhận', text: 'Có, tôi đồng ý', color: '#4CAF50' },

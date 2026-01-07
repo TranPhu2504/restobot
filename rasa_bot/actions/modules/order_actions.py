@@ -461,6 +461,7 @@ class ActionViewCurrentOrder(Action):
             
             # Lấy order hiện tại từ slot hoặc tìm order active
             current_order_id = tracker.get_slot("current_order_id")
+            print(f"🔍 Debug: current_order_id from slot: {current_order_id}")
             
             if not current_order_id:
                 dispatcher.utter_message(text="""📝 **CHƯA CÓ ĐƠN HÀNG**
@@ -473,8 +474,12 @@ Bạn chưa gọi món nào.
 📋 **Ví dụ:** "Tôi muốn gọi Phở Bò" """)
                 return []
             
-            # Lấy thông tin order từ API
-            response = requests.get(f"{API_BASE_URL}/orders/orders/{current_order_id}", headers=headers, timeout=5)
+            # Lấy thông tin order từ API với details
+            response = requests.get(f"{API_BASE_URL}/orders/orders/{current_order_id}/details", headers=headers, timeout=5)
+            
+            print(f"🔍 Debug: Order details request to {API_BASE_URL}/orders/orders/{current_order_id}/details")
+            print(f"🔍 Debug: Response status: {response.status_code}")
+            print(f"🔍 Debug: Response text: {response.text[:200]}...")
             
             if response.status_code == 200:
                 order_info = response.json()
@@ -493,19 +498,19 @@ Bạn chưa gọi món nào.
 
                 for i, item in enumerate(order_info['order_items'], 1):
                     print(f"🔍 Debug: Processing order_item {i}: {item}")
-                    menu_item = item.get('menu_item', {})
-                    print(f"🔍 Debug: menu_item data: {menu_item}")
+                    # For details endpoint, item data is directly in the item object
                     quantity = item.get('quantity', 0)
                     unit_price = item.get('unit_price', 0)
-                    subtotal = item.get('subtotal', 0)
-                    print(f"🔍 Debug: quantity={quantity}, unit_price={unit_price}, subtotal={subtotal}")
-                    total_amount += subtotal
+                    total_price = item.get('total_price', 0)
+                    item_name = item.get('item_name', 'Món không tên')
+                    print(f"🔍 Debug: item_name={item_name}, quantity={quantity}, unit_price={unit_price}, total_price={total_price}")
+                    total_amount += total_price
                     
                     price_formatted = f"{unit_price:,.0f}đ"
-                    subtotal_formatted = f"{subtotal:,.0f}đ"
+                    total_formatted = f"{total_price:,.0f}đ"
 
-                    order_text += f"{i}. **{menu_item.get('name', 'Món không tên')}**\n"
-                    order_text += f"   Số lượng: {quantity} x {price_formatted} = {subtotal_formatted}\n"
+                    order_text += f"{i}. **{item_name}**\n"
+                    order_text += f"   Số lượng: {quantity} x {price_formatted} = {total_formatted}\n"
                     if item.get('special_instructions'):
                         order_text += f"   📝 Ghi chú: {item['special_instructions']}\n"
                     order_text += "\n"
@@ -518,8 +523,12 @@ Bạn chưa gọi món nào.
                 order_text += "• Hủy: 'Hủy đơn hàng'"
 
                 dispatcher.utter_message(text=order_text)
+            elif response.status_code == 403:
+                dispatcher.utter_message(text="⚠️ Không có quyền xem đơn hàng này. Vui lòng kiểm tra lại.")
+            elif response.status_code == 404:
+                dispatcher.utter_message(text="⚠️ Không tìm thấy đơn hàng. Có thể đơn hàng đã bị hủy hoặc xóa.")
             else:
-                dispatcher.utter_message(text="❌ Không thể tải thông tin đơn hàng. Vui lòng thử lại sau.")
+                dispatcher.utter_message(text=f"❌ Không thể tải thông tin đơn hàng (Lỗi {response.status_code}). Vui lòng thử lại sau.")
         
         except requests.exceptions.Timeout:
             dispatcher.utter_message(text="⏱️ Kết nối chậm. Vui lòng thử lại sau.")

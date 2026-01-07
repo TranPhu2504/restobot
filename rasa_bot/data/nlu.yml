@@ -218,6 +218,17 @@ nlu:
     - không thể tới nhà hàng
     - thôi hủy đặt bàn
     - đổi ý rồi không đặt
+    - hủy bàn số 1
+    - hủy bàn số 2
+    - hủy bàn số 3
+    - hủy bàn 1
+    - hủy bàn 2
+    - hủy bàn [1](table_selection)
+    - hủy bàn [2](table_selection)
+    - hủy bàn [3](table_selection)
+    - hủy bàn số [1](table_selection)
+    - hủy bàn số [2](table_selection)
+    - hủy bàn số [3](table_selection)
     - hủy lịch đặt bàn
 
 - intent: ask_available_tables
