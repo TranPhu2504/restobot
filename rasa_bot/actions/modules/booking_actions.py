@@ -624,14 +624,6 @@ class ActionCancelReservation(Action):
             
             print(f"🔍 Debug: Final active_reservations count: {len(active_reservations)}")
             
-            # Check if user specified a table number to cancel
-            table_selection = None
-            for entity in tracker.latest_message.get('entities', []):
-                if entity['entity'] == 'table_selection':
-                    table_selection = entity['value']
-                    print(f"🔍 Debug: User selected table number: {table_selection}")
-                    break
-            
             if not active_reservations:
                 dispatcher.utter_message(text="""ℹ️ **KHÔNG TÌM THẤY ĐẶT BÀN ACTIVE**
 Bạn không có đặt bàn nào đang chờ xử lý (từ hôm nay trở đi).
@@ -644,55 +636,7 @@ Bạn không có đặt bàn nào đang chờ xử lý (từ hôm nay trở đi)
 📞 **Liên hệ:** Gọi 0901234567 nếu cần hỗ trợ""")
                 return []
             
-            # If user specified a table number, find and cancel that specific reservation
-            if table_selection and len(active_reservations) > 1:
-                try:
-                    selection_index = int(table_selection) - 1  # Convert to 0-based index
-                    if 0 <= selection_index < len(active_reservations):
-                        selected_reservation = active_reservations[selection_index]
-                        print(f"🔍 Debug: Selected reservation {selected_reservation.get('id')} based on user input")
-                        
-                        # Show confirmation for selected reservation
-                        try:
-                            if 'T' in str(selected_reservation.get('reservation_date')):
-                                res_datetime = datetime.fromisoformat(str(selected_reservation.get('reservation_date')).replace('Z', ''))
-                            else:
-                                res_datetime = datetime.strptime(str(selected_reservation.get('reservation_date')), '%Y-%m-%d')
-                            
-                            date_str = res_datetime.strftime('%d/%m/%Y')
-                            time_str = res_datetime.strftime('%H:%M')
-                        except:
-                            date_str = str(selected_reservation.get('reservation_date', 'N/A'))
-                            time_str = 'N/A'
-                        
-                        table_info = selected_reservation.get('table', {})
-                        table_number = table_info.get('number', selected_reservation.get('table_id', 'N/A'))
-                        
-                        confirmation_message = f"""❓ **XÁC NHẬN HỦY ĐẶT BÀN**
-
-📋 **Thông tin đặt bàn sẽ hủy:**
-🪑 **Bàn:** {table_number}
-👥 **Số khách:** {selected_reservation.get('party_size', 'N/A')} người
-📅 **Ngày:** {date_str}
-🕐 **Giờ:** {time_str}
-
-⚠️ **Bạn có chắc chắn muốn hủy đặt bàn này không?**
-
-💡 **Chọn:**
-• Nói **"Có"** để xác nhận hủy đặt bàn
-• Nói **"Không"** để giữ lại đặt bàn"""
-                        
-                        dispatcher.utter_message(text=confirmation_message)
-                        return [SlotSet("pending_cancellation_reservation_id", selected_reservation.get('id')),
-                                SlotSet("conversation_context", "cancel_reservation_confirmation")]
-                    else:
-                        dispatcher.utter_message(text=f"❌ Số thứ tự không hợp lệ. Vui lòng chọn từ 1 đến {len(active_reservations)}.")
-                        return []
-                except ValueError:
-                    dispatcher.utter_message(text="❌ Số thứ tự không hợp lệ. Vui lòng chọn số từ 1 trở đi.")
-                    return []
-            
-            # Nếu có nhiều reservation và không chỉ định số, hiển thị danh sách để chọn
+            # Nếu có nhiều reservation, hiển thị danh sách để chọn
             if len(active_reservations) > 1:
                 message = "📋 **BẠN CÓ NHIỀU ĐẶT BÀN**\n\n"
                 for i, res in enumerate(active_reservations, 1):

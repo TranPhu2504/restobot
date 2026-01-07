@@ -461,7 +461,6 @@ class ActionViewCurrentOrder(Action):
             
             # Lấy order hiện tại từ slot hoặc tìm order active
             current_order_id = tracker.get_slot("current_order_id")
-            print(f"🔍 Debug: current_order_id from slot: {current_order_id}")
             
             if not current_order_id:
                 dispatcher.utter_message(text="""📝 **CHƯA CÓ ĐƠN HÀNG**
@@ -476,10 +475,6 @@ Bạn chưa gọi món nào.
             
             # Lấy thông tin order từ API với details
             response = requests.get(f"{API_BASE_URL}/orders/orders/{current_order_id}/details", headers=headers, timeout=5)
-            
-            print(f"🔍 Debug: Order details request to {API_BASE_URL}/orders/orders/{current_order_id}/details")
-            print(f"🔍 Debug: Response status: {response.status_code}")
-            print(f"🔍 Debug: Response text: {response.text[:200]}...")
             
             if response.status_code == 200:
                 order_info = response.json()
@@ -523,12 +518,8 @@ Bạn chưa gọi món nào.
                 order_text += "• Hủy: 'Hủy đơn hàng'"
 
                 dispatcher.utter_message(text=order_text)
-            elif response.status_code == 403:
-                dispatcher.utter_message(text="⚠️ Không có quyền xem đơn hàng này. Vui lòng kiểm tra lại.")
-            elif response.status_code == 404:
-                dispatcher.utter_message(text="⚠️ Không tìm thấy đơn hàng. Có thể đơn hàng đã bị hủy hoặc xóa.")
             else:
-                dispatcher.utter_message(text=f"❌ Không thể tải thông tin đơn hàng (Lỗi {response.status_code}). Vui lòng thử lại sau.")
+                dispatcher.utter_message(text="❌ Không thể tải thông tin đơn hàng. Vui lòng thử lại sau.")
         
         except requests.exceptions.Timeout:
             dispatcher.utter_message(text="⏱️ Kết nối chậm. Vui lòng thử lại sau.")

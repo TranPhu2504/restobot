@@ -63,7 +63,6 @@ entities:
   - confirmation
   - modification_type
   - phone_number
-  - table_selection
   - customer_name
   - payment_method
 
